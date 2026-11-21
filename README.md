@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Santto Vício · Encomendas
 
-## Getting Started
+Sistema de encomendas de Natal: loja para o cliente, acompanhamento do pedido e painel da loja.
 
-First, run the development server:
+| Endereço | Para quem | O que faz |
+|---|---|---|
+| `/` | Cliente | Cardápio, sacola, entrega e envio do pedido |
+| `/pedido/SV-0001?t=…` | Cliente | Acompanhamento ao vivo (o link vai no WhatsApp) |
+| `/painel` | Loja | Pedidos com alarme, taxa, etapas e botão de WhatsApp |
+
+## Rodar no computador (modo teste)
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000. Sem Supabase configurado, os pedidos ficam em `data/pedidos.json`.
+A senha do painel está em `.env.local` (`PAINEL_SENHA`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Colocar no ar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Banco (Supabase, grátis):** crie um projeto em supabase.com. Em *SQL Editor*, rode `supabase/schema.sql`.
+   Em *Project Settings → API*, copie a *Project URL* e a chave *service_role*.
+2. **Site (Vercel, grátis):** suba esta pasta para um repositório no GitHub e importe na vercel.com.
+   Em *Settings → Environment Variables*, cadastre as variáveis do `.env.example`
+   (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PAINEL_SENHA`, `PAINEL_SEGREDO`, `SITE_URL`, `PIX_CHAVE`, `ORIGEM_ENDERECO`…).
+3. **Distância exata (opcional):** crie uma chave da *Distance Matrix API* no Google Cloud e coloque em `GOOGLE_MAPS_KEY`.
+   Sem ela, a taxa usa a tabela de bairros de `lib/taxa.ts`.
+4. **Aviso no celular (opcional):** crie um bot com o @BotFather no Telegram, mande uma mensagem para ele
+   e preencha `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`.
 
-## Learn More
+## Onde mudar as coisas
 
-To learn more about Next.js, take a look at the following resources:
+- Produtos e preços: `lib/catalogo.ts`
+- Datas, horários, sinal e etapas: `lib/regras.ts`
+- Fórmula da taxa e distâncias por bairro: `lib/taxa.ts` e `.env.local`
+- Textos do WhatsApp: `lib/mensagens.ts`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Segurança
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Os preços são recalculados no servidor; o cliente não consegue alterar valores.
+- O endereço da doceria só existe no servidor (`ORIGEM_ENDERECO`) e nunca aparece para o cliente.
+- Cada pedido tem um link secreto de acompanhamento.
+- O banco só é acessado pelo servidor (RLS ligado, sem acesso público).
