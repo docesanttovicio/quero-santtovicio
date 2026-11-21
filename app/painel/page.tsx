@@ -106,7 +106,7 @@ export default function Painel() {
               </div>
               <div className="acts">
                 {p.novo && <button className="btn ghost" onClick={() => acao(p, { acao: "visto" })}>Visto</button>}
-                {!finalizado(p) ? <button className={"btn" + (p.etapa === 3 ? " ok" : "")} onClick={() => avancar(p)}>{s.acao}</button> : <span className="pill ok">Concluído</span>}
+                {!finalizado(p) ? <button className={"btn" + (p.etapa === 3 ? " ok" : "")} onClick={() => avancar(p)}>{s.acao}</button> : <span className="done-badge">✓ Concluído</span>}
                 {zap[p.codigo] ? <a className="btn ok" href={zap[p.codigo]} target="_blank" rel="noreferrer" onClick={() => setZap((z) => Object.fromEntries(Object.entries(z).filter(([k]) => k !== p.codigo)))}>Enviar no WhatsApp</a>
                   : <button className="link small" onClick={async () => { const j = await acao(p, { acao: "whatsapp" }); if (j) window.open(j.whatsapp, "_blank"); }}>Reenviar última mensagem</button>}
               </div>
