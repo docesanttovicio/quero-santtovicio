@@ -2,8 +2,8 @@ import "server-only";
 import type { Endereco } from "./regras";
 
 // Taxa = base + R$/km, com mínimo. Ajuste pelo .env.local depois de simular corridas reais no Uber/99.
-const BASE = Number(process.env.TAXA_BASE ?? 6);
-const POR_KM = Number(process.env.TAXA_POR_KM ?? 1.6);
+const BASE = Number(process.env.TAXA_BASE ?? 8);
+const POR_KM = Number(process.env.TAXA_POR_KM ?? 0.95);
 const MINIMO = Number(process.env.TAXA_MINIMO ?? 12);
 
 // Distância aproximada (km, de carro) a partir de Senador Camará. Usada quando não há chave do Google Maps

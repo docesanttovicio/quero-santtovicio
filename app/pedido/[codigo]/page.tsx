@@ -9,7 +9,9 @@ export default function Acompanhar({ params }: { params: Promise<{ codigo: strin
   const { codigo } = use(params);
   const sp = useSearchParams();
   const t = sp.get("t") ?? "";
-  const [p, setP] = useState<PedidoPublico | null>(null);
+  const [p, setP] = useState<(PedidoPublico & { pix?: string | null }) | null>(null);
+  const [copiado, setCopiado] = useState(false);
+  const campoPix = useRef<HTMLInputElement>(null);
   const [erro, setErro] = useState("");
   const vistos = useRef(0);
 
@@ -56,6 +58,17 @@ export default function Acompanhar({ params }: { params: Promise<{ codigo: strin
             <span className="muted">Mensagens da Santto Vício sobre esta encomenda:</span>
             {p.historico.map((h, i) => <div key={i} className={"bub" + (i >= novos ? " new" : "")}>{h.mensagem}<time>{hm(h.em)}</time></div>)}
           </div></div>
+          {p.pix && <div className="block"><div className="pixbox">
+            <label htmlFor="pix" className="eyebrow muted">Chave Pix da Santto Vício</label>
+            <div className="pixrow">
+              <input id="pix" ref={campoPix} readOnly value={p.pix} onFocus={(e) => e.target.select()} />
+              <button className={"btn" + (copiado ? " ok" : "")} type="button" onClick={async () => {
+                try { await navigator.clipboard.writeText(p.pix!); } catch { campoPix.current?.select(); document.execCommand?.("copy"); }
+                setCopiado(true); setTimeout(() => setCopiado(false), 2000);
+              }}>{copiado ? "Copiado ✓" : "Copiar"}</button>
+            </div>
+            {devido && <small className="muted">Valor a pagar agora: <b className="price" style={{ color: "var(--ink)" }}>{BRL(devido.v)}</b></small>}
+          </div></div>}
           <div className="block"><h3>Pagamentos</h3><div className="totals">
             {p.itens.map((l, i) => <div key={i}><span>{l.qtd}× {l.nome} <span className="muted">({l.variante})</span></span><span className="price">{BRL(l.preco * l.qtd)}</span></div>)}
             {ent && <div><span>Entrega {p.km ? <span className="muted">({p.km} km)</span> : null}</span><span className="price">{p.taxa ? BRL(p.taxa) : <span className="muted">a confirmar</span>}</span></div>}

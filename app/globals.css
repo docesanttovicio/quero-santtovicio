@@ -278,3 +278,7 @@ a.btn{text-decoration:none}
 
 /* iPhone dá zoom em campos com letra menor que 16px: todos os campos ficam com 16px */
 input,textarea,select{font-size:16px!important}
+.pixbox{background:var(--cream);border-radius:14px;padding:14px;display:grid;gap:8px}
+.pixrow{display:flex;gap:8px}
+.pixrow input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;background:#fff;color:var(--ink)}
+.pixrow .btn{flex:none;justify-content:center;min-width:110px}

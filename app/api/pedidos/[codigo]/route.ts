@@ -12,5 +12,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ codigo: 
   if (!p || !ok) return NextResponse.json({ erro: "Pedido não encontrado." }, { status: 404 });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { token: _t, novo: _n, ...pub } = p;
-  return NextResponse.json(pub satisfies PedidoPublico, { headers: { "cache-control": "no-store" } });
+  // A chave Pix vai junto para o cliente copiar na página de acompanhamento.
+  const resposta: PedidoPublico & { pix: string | null } = { ...pub, pix: p.pagamento === "pix" ? process.env.PIX_CHAVE || null : null };
+  return NextResponse.json(resposta, { headers: { "cache-control": "no-store" } });
 }
