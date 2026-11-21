@@ -160,7 +160,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance
 .opt input{appearance:none;width:22px;height:22px;border-radius:50%;border:2px solid #cdb3a8;flex:none;margin:0;transition:border-width .18s var(--ease),border-color .18s}
 .opt input:checked{border:7px solid var(--wine)}
 .opt .price{font-size:16px}
-textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:14px;background:#fff;resize:none;min-height:72px;color:var(--ink)}
+textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font:inherit;font-size:16px;background:#fff;resize:none;min-height:72px;color:var(--ink)}
 .sheet-foot{display:flex;gap:12px;align-items:center;padding-block:12px;border-top:1px solid var(--line);padding-bottom:max(12px,env(safe-area-inset-bottom,0px))}
 .stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;height:50px}
 .stepper button{width:40px;height:100%;background:none;border:0;font-size:22px;color:var(--wine)}
@@ -275,3 +275,6 @@ a.btn{text-decoration:none}
 .filters button.on{background:var(--wine);color:var(--cream);border-color:var(--wine)}
 .small{font-size:12px}
 .sound{border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline}
+
+/* iPhone dá zoom em campos com letra menor que 16px: todos os campos ficam com 16px */
+input,textarea,select{font-size:16px!important}
