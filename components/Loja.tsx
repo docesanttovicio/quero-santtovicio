@@ -334,6 +334,16 @@ function useFechar(onFechar: () => void) {
     ov.current?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }).finished.then(onFechar);
   }, [onFechar]);
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === "Escape" && fechar(); addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [fechar]);
+  // Trava a página de trás enquanto a folha está aberta (no iPhone, só overflow:hidden não basta).
+  useEffect(() => {
+    const y = window.scrollY, b = document.body.style, h = document.documentElement.style;
+    const antes = { position: b.position, top: b.top, left: b.left, right: b.right, overflow: h.overflow };
+    Object.assign(b, { position: "fixed", top: `-${y}px`, left: "0", right: "0" }); h.overflow = "hidden";
+    return () => {
+      Object.assign(b, { position: antes.position, top: antes.top, left: antes.left, right: antes.right }); h.overflow = antes.overflow;
+      window.scrollTo({ top: y, behavior: "instant" as ScrollBehavior });
+    };
+  }, []);
   return { sheet, ov, fechar };
 }
 
