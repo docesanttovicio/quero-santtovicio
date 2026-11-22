@@ -113,7 +113,7 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
         <section className={dir} key="loja">
           <div className="hero">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/capa.jpg" alt="Mesa de Natal com Matilda, torta alemã, brownies, cookies e muffins" />
+            <img src="/img/capa-natal.jpg" alt="Mesa de Natal com Matilda, torta alemã, brownies, cookies e muffins" />
             <div className="hero-shade" />
             <div className="hero-top pad"><span className="chip light">Rio de Janeiro</span></div>
           </div>

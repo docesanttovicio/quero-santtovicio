@@ -33,7 +33,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance
 
 /* Loja */
 .hero{background:var(--wine);color:var(--cream);position:relative}
-.hero img{display:block;width:100%;aspect-ratio:9/6;object-fit:cover;object-position:50% 40%}
+.hero img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;object-position:50% 50%}
 .hero-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(53,6,16,.55),rgba(53,6,16,0) 35%,rgba(53,6,16,0) 60%,var(--wine) 100%)}
 .hero-top{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:space-between;align-items:center}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:500}
@@ -383,7 +383,7 @@ input,textarea,select{font-size:16px!important}
 
 /* ---------- Tela de senha do painel ---------- */
 .entrar{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-left,0px));
-  background:linear-gradient(180deg,rgba(53,6,16,.78),rgba(53,6,16,.94)),url(/img/capa.jpg) center/cover no-repeat,var(--wine-deep)}
+  background:linear-gradient(180deg,rgba(53,6,16,.55),rgba(53,6,16,.8)),url(/img/fundo-painel.jpg) center/cover no-repeat,var(--wine-deep)}
 .entrar-card{width:100%;max-width:400px;background:var(--paper);border-radius:22px;padding:32px 28px 24px;display:grid;justify-items:center;text-align:center;
   box-shadow:0 24px 60px rgba(20,2,6,.45);animation:sobe .45s var(--ease)}
 @keyframes sobe{from{transform:translateY(16px)}}
