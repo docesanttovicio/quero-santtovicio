@@ -15,7 +15,7 @@ Enquanto não estiver ligado, o painel continua com o botão **Enviar no WhatsAp
 
 ## 2. Criar os modelos de mensagem
 
-No **WhatsApp Manager → Modelos de mensagem → Criar modelo**, crie os 8 abaixo com:
+No **WhatsApp Manager → Modelos de mensagem → Criar modelo**, crie os 9 abaixo com:
 
 - **Categoria:** Utilidade
 - **Nome:** exatamente como está aqui (minúsculas, com `_`)
@@ -28,14 +28,14 @@ No **WhatsApp Manager → Modelos de mensagem → Criar modelo**, crie os 8 abai
 Oi, {{1}}! Aqui é a Santto Vício. Recebemos sua encomenda {{2}} para {{3}}.
 
 Para confirmar, falta o sinal de {{4}}.
-Como pagar: {{5}}
+{{5}}
 
-Acompanhe sua encomenda: {{6}}
+Acompanhe: {{6}}
 
 Obrigado pela preferência!
 ```
 
-Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = Quinta, 24/12, 13h às 16h · {{4}} = R$ 90,00 · {{5}} = Pix doce.santtovicio@gmail.com · {{6}} = https://quero-santtovicio.vercel.app/pedido/SV-0001
+Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = Quinta, 24/12, 13h às 16h · {{4}} = R$ 90,00 · {{5}} = Segue a nossa chave Pix logo abaixo. · {{6}} = https://quero-santtovicio.vercel.app/pedido/SV-0001
 
 ### `sv_sinal_recebido`
 
@@ -69,12 +69,12 @@ Oi, {{1}}! Sua encomenda {{2}} está pronta. Como combinado, o pagamento da entr
 Restante dos produtos: {{3}}
 Entrega: {{4}}
 Total: {{5}}
-Como pagar: {{6}}
+{{6}}
 
 Assim que o pagamento cair, despachamos.
 ```
 
-Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = R$ 90,00 · {{4}} = R$ 52,00 · {{5}} = R$ 142,00 · {{6}} = Pix doce.santtovicio@gmail.com
+Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = R$ 90,00 · {{4}} = R$ 52,00 · {{5}} = R$ 142,00 · {{6}} = Segue a nossa chave Pix logo abaixo.
 
 ### `sv_pronta_retirada`
 
@@ -92,6 +92,18 @@ Pagamento recebido, {{1}}! Sua encomenda {{2}} saiu para entrega e chega em brev
 
 Exemplos: {{1}} = Mariana · {{2}} = SV-0001
 
+### `sv_chave_pix`
+
+```text
+Chave Pix da Santto Vício:
+
+{{1}}
+
+Toque e segure na chave para copiar.
+```
+
+Exemplos: {{1}} = doce.santtovicio@gmail.com
+
 ### `sv_concluido`
 
 ```text
@@ -99,6 +111,9 @@ Obrigado por escolher a Santto Vício, {{1}}! Esperamos que sua encomenda {{2}} 
 ```
 
 Exemplos: {{1}} = Mariana · {{2}} = SV-0001
+> **Sobre a chave Pix:** quando o pagamento é por Pix, o sistema manda a mensagem principal e, logo em seguida, o modelo `sv_chave_pix`.
+> A Meta não aceita um modelo só com a chave, por isso ele tem uma linha antes e outra depois. Como a chave é um e-mail, o WhatsApp vira link e o cliente toca e segura nela para copiar só a chave.
+> No envio manual (botão do painel), a chave vai totalmente sozinha.
 
 ## 3. Ligar no site
 

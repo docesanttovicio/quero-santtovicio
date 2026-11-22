@@ -13,7 +13,8 @@ export default function Painel() {
   const [filtro, setFiltro] = useState<Filtro>("ativos");
   const [som, setSom] = useState(false);
   const [toast, setToast] = useState("");
-  const [zap, setZap] = useState<Record<string, string>>({});
+  const [zap, setZap] = useState<Record<string, { msg?: string; pix?: string }>>({});
+  const tirar = (cod: string, k: "msg" | "pix") => setZap((z) => ({ ...z, [cod]: { ...z[cod], [k]: undefined } }));
   const audio = useRef<AudioContext | null>(null);
 
   const carregar = useCallback(async () => {
@@ -46,13 +47,13 @@ export default function Painel() {
     const j = await r.json();
     if (!r.ok) { avisar(j.erro || "Não deu certo."); carregar(); return null; }
     setPedidos((l) => l.map((x) => (x.codigo === p.codigo ? j.pedido : x)));
-    return j as { pedido: Pedido; whatsapp: string; envio: "enviado" | "manual" | "erro" };
+    return j as { pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro" };
   }
   async function avancar(p: Pedido) {
     const j = await acao(p, { acao: "avancar", de: p.etapa });
     if (!j) return;
     if (j.envio === "enviado") avisar("Etapa atualizada e WhatsApp enviado ao cliente ✓");
-    else { setZap((z) => ({ ...z, [p.codigo]: j.whatsapp })); avisar(j.envio === "erro" ? "O WhatsApp automático falhou. Envie pelo botão." : "Etapa atualizada. Agora envie o WhatsApp."); }
+    else { setZap((z) => ({ ...z, [p.codigo]: { msg: j.whatsapp, pix: j.whatsappPix ?? undefined } })); avisar(j.envio === "erro" ? "O WhatsApp automático falhou. Envie pelos botões." : "Etapa atualizada. Agora envie o WhatsApp."); }
   }
 
   if (estado === "carregando") return <div className="app panel"><div className="center muted">Carregando…</div></div>;
@@ -109,15 +110,17 @@ export default function Painel() {
               <div className="acts">
                 {p.novo && <button className="btn ghost" onClick={() => acao(p, { acao: "visto" })}>Visto</button>}
                 {!finalizado(p) ? <button className={"btn" + (p.etapa === 3 ? " ok" : "")} onClick={() => avancar(p)}>{s.acao}</button> : <span className="done-badge">✓ Concluído</span>}
-                {zap[p.codigo] ? <a className="btn ok" href={zap[p.codigo]} target="_blank" rel="noreferrer" onClick={() => setZap((z) => Object.fromEntries(Object.entries(z).filter(([k]) => k !== p.codigo)))}>Enviar no WhatsApp</a>
-                  : <button className="link small" onClick={async () => {
+                {zap[p.codigo]?.msg && <a className="btn ok" href={zap[p.codigo].msg} target="_blank" rel="noreferrer" onClick={() => tirar(p.codigo, "msg")}>Enviar no WhatsApp</a>}
+                {!zap[p.codigo]?.msg && zap[p.codigo]?.pix && <a className="btn ok" href={zap[p.codigo].pix} target="_blank" rel="noreferrer" onClick={() => tirar(p.codigo, "pix")}>Enviar chave Pix</a>}
+                {!zap[p.codigo]?.msg && !zap[p.codigo]?.pix && <button className="link small" onClick={async () => {
                       const j = await acao(p, { acao: "reenviar" }); if (!j) return;
-                      if (j.envio === "enviado") avisar("Mensagem reenviada no WhatsApp ✓"); else window.open(j.whatsapp, "_blank");
+                      if (j.envio === "enviado") avisar("Mensagens reenviadas no WhatsApp ✓");
+                      else setZap((z) => ({ ...z, [p.codigo]: { msg: j.whatsapp, pix: j.whatsappPix ?? undefined } }));
                     }}>Reenviar última mensagem</button>}
               </div>
               {(() => { const u = p.historico[p.historico.length - 1]; if (!u) return null;
                 return <p className="small" style={{ margin: "8px 0 0", color: u.envio === "erro" ? "#a3172b" : u.envio === "enviado" ? "var(--ok)" : "var(--muted)" }}>
-                  {u.envio === "enviado" ? "✓ Última mensagem enviada automaticamente no WhatsApp" : u.envio === "erro" ? `WhatsApp automático falhou: ${u.erro ?? "erro desconhecido"}` : "WhatsApp automático desligado: envie pelo botão"}</p>; })()}
+                  {u.envio === "enviado" ? "✓ Última mensagem enviada automaticamente no WhatsApp" : u.envio === "erro" ? `WhatsApp automático falhou: ${u.erro ?? "erro desconhecido"}` : "WhatsApp automático desligado: envie pelos botões"}</p>; })()}
             </article>
           );
         })}

@@ -4,9 +4,8 @@ import { porId } from "@/lib/catalogo";
 import { DIAS, FAIXAS, pedidosAbertos, round2, type ItemPedido, type Pedido } from "@/lib/regras";
 import { estimarTaxa } from "@/lib/taxa";
 import { db } from "@/lib/banco";
-import { mensagem } from "@/lib/mensagens";
 import { avisarLoja } from "@/lib/avisos";
-import { enviarWhatsApp } from "@/lib/whatsapp";
+import { notificarEtapa } from "@/lib/whatsapp";
 
 const txt = (v: unknown, max = 120) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -54,8 +53,7 @@ export async function POST(req: Request) {
     pagamento, etapa: 0, novo: true, historico: [],
   };
   const p = await db().criar(base);
-  const m = mensagem(p);
-  p.historico.push({ etapa: 0, em: p.criadoEm, mensagem: m.texto, ...(await enviarWhatsApp(p.whatsapp, m)) });
+  await notificarEtapa(p, p.criadoEm);
   await db().salvar(p);
   await avisarLoja(p);
   return NextResponse.json({ codigo: p.codigo, token: p.token });

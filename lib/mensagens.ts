@@ -5,7 +5,7 @@ import { BRL, nomeDia, nomeFaixa, restante, sinal, type Pedido } from "./regras"
 // Os {{n}} são preenchidos pelo sistema. O mesmo texto aparece na página de acompanhamento do cliente.
 export const MODELOS = {
   sv_pedido_recebido:
-    "Oi, {{1}}! Aqui é a Santto Vício. Recebemos sua encomenda {{2}} para {{3}}.\n\nPara confirmar, falta o sinal de {{4}}.\nComo pagar: {{5}}\n\nAcompanhe sua encomenda: {{6}}\n\nObrigado pela preferência!",
+    "Oi, {{1}}! Aqui é a Santto Vício. Recebemos sua encomenda {{2}} para {{3}}.\n\nPara confirmar, falta o sinal de {{4}}.\n{{5}}\n\nAcompanhe: {{6}}\n\nObrigado pela preferência!",
   sv_sinal_recebido:
     "Sinal recebido, {{1}}! Sua encomenda {{2}} está confirmada para {{3}}. Obrigado!",
   sv_retirada_confirmada:
@@ -13,11 +13,13 @@ export const MODELOS = {
   sv_em_producao:
     "Oi, {{1}}! Sua encomenda {{2}} entrou em produção. O cheirinho já chegou aqui na cozinha!",
   sv_pronta_pagamento:
-    "Oi, {{1}}! Sua encomenda {{2}} está pronta. Como combinado, o pagamento da entrega é feito agora, antes de o motorista sair:\n\nRestante dos produtos: {{3}}\nEntrega: {{4}}\nTotal: {{5}}\nComo pagar: {{6}}\n\nAssim que o pagamento cair, despachamos.",
+    "Oi, {{1}}! Sua encomenda {{2}} está pronta. Como combinado, o pagamento da entrega é feito agora, antes de o motorista sair:\n\nRestante dos produtos: {{3}}\nEntrega: {{4}}\nTotal: {{5}}\n{{6}}\n\nAssim que o pagamento cair, despachamos.",
   sv_pronta_retirada:
     "Oi, {{1}}! Sua encomenda {{2}} está pronta. Responda esta mensagem para combinarmos o local e o horário da retirada. Restante a pagar na retirada: {{3}}. Até já!",
   sv_saiu_entrega:
     "Pagamento recebido, {{1}}! Sua encomenda {{2}} saiu para entrega e chega em breve.",
+  sv_chave_pix:
+    "Chave Pix da Santto Vício:\n\n{{1}}\n\nToque e segure na chave para copiar.",
   sv_concluido:
     "Obrigado por escolher a Santto Vício, {{1}}! Esperamos que sua encomenda {{2}} faça sucesso na ceia. Feliz Natal!",
 } as const;
@@ -38,9 +40,9 @@ const limpo = (s: string) => s.replace(/\s+/g, " ").trim();
 export function mensagem(p: Pedido): Mensagem {
   const n = p.nome.split(" ")[0];
   const quando = `${nomeDia(p.dia)}, ${nomeFaixa(p.faixa)}${p.modo === "retirada" ? " (retirada)" : ""}`;
-  const pagar = p.pagamento === "pix"
-    ? `Pix ${process.env.PIX_CHAVE || "(chave a configurar)"}`
-    : "link de cartão, que enviamos em seguida por aqui";
+  const pagar = p.pagamento === "pix" && process.env.PIX_CHAVE
+    ? "Segue a nossa chave Pix logo abaixo."
+    : p.pagamento === "pix" ? "Em seguida enviamos a nossa chave Pix por aqui." : "Em seguida enviamos o link de pagamento do cartão por aqui.";
   const link = process.env.SITE_URL ? `${process.env.SITE_URL}/pedido/${p.codigo}?t=${p.token}` : "pelo link do site";
   const modelo = (p.modo === "retirada" ? RETIRADA : ENTREGA)[p.etapa];
 
@@ -52,10 +54,19 @@ export function mensagem(p: Pedido): Mensagem {
     sv_pronta_pagamento: [n, p.codigo, BRL(p.subtotal - sinal(p)), BRL(p.taxa), BRL(restante(p)), pagar],
     sv_pronta_retirada: [n, p.codigo, BRL(restante(p))],
     sv_saiu_entrega: [n, p.codigo],
+    sv_chave_pix: [process.env.PIX_CHAVE ?? ""],
     sv_concluido: [n, p.codigo],
   };
   const ps = params[modelo].map(limpo);
   return { modelo, params: ps, texto: preencher(modelo, ps) };
+}
+
+// Segunda mensagem, só com a chave Pix, logo depois das mensagens que pedem pagamento.
+export function mensagemPix(p: Pedido): Mensagem | null {
+  const chave = process.env.PIX_CHAVE;
+  const cobra = p.etapa === 0 || (p.modo === "entrega" && p.etapa === 3);
+  if (p.pagamento !== "pix" || !chave || !cobra) return null;
+  return { modelo: "sv_chave_pix", params: [chave], texto: preencher("sv_chave_pix", [chave]) };
 }
 
 // Número no formato internacional (55 + DDD + número).

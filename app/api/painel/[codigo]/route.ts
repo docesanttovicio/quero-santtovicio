@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/banco";
 import { logado } from "@/lib/painel-auth";
-import { etapasDe, finalizado, round2 } from "@/lib/regras";
-import { linkWhatsApp, mensagem } from "@/lib/mensagens";
-import { enviarWhatsApp } from "@/lib/whatsapp";
+import { etapasDe, finalizado, round2, type Pedido } from "@/lib/regras";
+import { linkWhatsApp, mensagem, mensagemPix } from "@/lib/mensagens";
+import { enviarWhatsApp, notificarEtapa } from "@/lib/whatsapp";
 
-// Ações da loja sobre um pedido: visto, taxa, avançar etapa (envia o WhatsApp sozinho) e reenviar mensagem.
+// Mensagens da etapa atual (a principal e, se houver, a da chave Pix), mais recentes no fim do histórico.
+const daEtapa = (p: Pedido) => p.historico.filter((h) => h.etapa === p.etapa);
+
+// Ações da loja sobre um pedido: visto, taxa, avançar etapa (envia o WhatsApp sozinho) e reenviar.
 export async function POST(req: Request, { params }: { params: Promise<{ codigo: string }> }) {
   if (!(await logado())) return NextResponse.json({ erro: "Entre com a senha do painel." }, { status: 401 });
   const { codigo } = await params;
@@ -26,19 +29,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ codigo:
     if (p.modo === "entrega" && p.etapa === 2 && !(p.taxa > 0)) return NextResponse.json({ erro: "Defina a taxa de entrega antes de cobrar o restante." }, { status: 400 });
     p.novo = false;
     p.etapa = Math.min(etapasDe(p).length - 1, p.etapa + 1);
-    const m = mensagem(p);
-    p.historico.push({ etapa: p.etapa, em: new Date().toISOString(), mensagem: m.texto, ...(await enviarWhatsApp(p.whatsapp, m)) });
+    await notificarEtapa(p);
   } else if (b.acao === "reenviar") {
-    // tenta de novo pela API a mensagem da etapa atual; sem API, só devolve o link manual
-    const ult = p.historico[p.historico.length - 1];
-    if (ult && ult.etapa === p.etapa) {
-      const r = await enviarWhatsApp(p.whatsapp, mensagem(p));
-      if (r.envio !== "manual") { ult.envio = r.envio; ult.erro = r.erro; }
+    // tenta de novo pela API as mensagens da etapa atual; sem API, o painel usa os links manuais
+    for (const h of daEtapa(p)) {
+      const m = h.pix ? mensagemPix(p) : mensagem(p);
+      if (!m) continue;
+      const r = await enviarWhatsApp(p.whatsapp, m);
+      if (r.envio !== "manual") { h.envio = r.envio; h.erro = r.erro; }
     }
   } else {
     return NextResponse.json({ erro: "Ação desconhecida." }, { status: 400 });
   }
   await db().salvar(p);
-  const ultima = p.historico[p.historico.length - 1];
-  return NextResponse.json({ pedido: p, whatsapp: linkWhatsApp(p, ultima?.mensagem ?? mensagem(p).texto), envio: ultima?.envio ?? "manual" });
+
+  const msgs = daEtapa(p), principal = msgs.find((h) => !h.pix), pix = msgs.find((h) => h.pix);
+  const envio = msgs.some((h) => h.envio === "erro") ? "erro" : msgs.length && msgs.every((h) => h.envio === "enviado") ? "enviado" : "manual";
+  return NextResponse.json({
+    pedido: p,
+    whatsapp: linkWhatsApp(p, principal?.mensagem ?? mensagem(p).texto),
+    // no manual, a chave vai totalmente sozinha, fácil de copiar
+    whatsappPix: pix && process.env.PIX_CHAVE ? linkWhatsApp(p, process.env.PIX_CHAVE) : null,
+    envio,
+  });
 }

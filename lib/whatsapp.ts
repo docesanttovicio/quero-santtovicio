@@ -1,5 +1,6 @@
 import "server-only";
-import { numeroWhatsApp, type Mensagem } from "./mensagens";
+import { mensagem, mensagemPix, numeroWhatsApp, type Mensagem } from "./mensagens";
+import type { Pedido } from "./regras";
 
 // Envio pela API oficial do WhatsApp (Meta Cloud API).
 // Precisa de WHATSAPP_TOKEN (token permanente de usuário do sistema) e WHATSAPP_PHONE_ID (ID do número).
@@ -38,4 +39,13 @@ export async function enviarWhatsApp(para: string, m: Mensagem): Promise<Resulta
     console.error("[whatsapp] erro de rede", e);
     return { envio: "erro", erro: "Sem conexão com o WhatsApp." };
   }
+}
+
+// Manda a mensagem da etapa atual e, quando é hora de pagar por Pix, uma segunda só com a chave.
+// Registra tudo no histórico do pedido (é o que o cliente vê na página de acompanhamento).
+export async function notificarEtapa(p: Pedido, em = new Date().toISOString()) {
+  const m = mensagem(p);
+  p.historico.push({ etapa: p.etapa, em, mensagem: m.texto, ...(await enviarWhatsApp(p.whatsapp, m)) });
+  const pix = mensagemPix(p);
+  if (pix) p.historico.push({ etapa: p.etapa, em, mensagem: pix.texto, pix: true, ...(await enviarWhatsApp(p.whatsapp, pix)) });
 }
