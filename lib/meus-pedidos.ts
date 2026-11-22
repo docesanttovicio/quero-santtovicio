@@ -21,7 +21,8 @@ export function marcarVisto(codigo: string, n: number) {
   gravar(lerSalvos().map((x) => (x.codigo === codigo ? { ...x, visto: Math.max(x.visto, n) } : x)));
 }
 
-export type Resumo = { codigo: string; token: string; titulo: string; quando: string; finalizado: boolean; novidade: boolean; criadoEm: string };
+export type PedidoCliente = PedidoPublico & { pix?: string | null; zapLoja?: string | null };
+export type Resumo = { codigo: string; token: string; titulo: string; quando: string; finalizado: boolean; novidade: boolean; criadoEm: string; p: PedidoCliente };
 
 // Busca a situação de cada pedido salvo; repete a cada minuto e quando a tela volta a ficar visível.
 export function useMeusPedidos() {
@@ -34,10 +35,10 @@ export function useMeusPedidos() {
         try {
           const res = await fetch(`/api/pedidos/${s.codigo}?t=${encodeURIComponent(s.token)}`, { cache: "no-store" });
           if (!res.ok) return null;
-          const p = (await res.json()) as PedidoPublico;
+          const p = (await res.json()) as PedidoCliente;
           const S = etapasDe(p);
           return { codigo: p.codigo, token: s.token, titulo: p.cancelado ? "Cancelada" : S[p.etapa].t, quando: `${nomeDia(p.dia)}, ${nomeFaixa(p.faixa)}`,
-            finalizado: !!p.cancelado || p.etapa >= S.length - 1, novidade: p.historico.length > s.visto, criadoEm: p.criadoEm } as Resumo;
+            finalizado: !!p.cancelado || p.etapa >= S.length - 1, novidade: p.historico.length > s.visto, criadoEm: p.criadoEm, p } as Resumo;
         } catch { return null; }
       }));
       if (vivo) setLista(r.filter((x): x is Resumo => !!x));

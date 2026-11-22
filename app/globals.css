@@ -432,3 +432,20 @@ input,textarea,select{font-size:16px!important}
 .track-cancel{background:#fbe1e1;color:#7a1020;border-radius:14px;padding:14px;display:grid;gap:4px;font-size:14px}
 .track-cancel b{font-family:var(--f-display);font-weight:400;font-size:20px}
 .tabs-inner{scroll-behavior:auto;-webkit-overflow-scrolling:touch}
+#menu .section{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 58px)}
+/* Meus pedidos em sanfona */
+.acc{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:box-shadow .2s}
+.acc.aberto{box-shadow:0 8px 24px rgba(53,6,16,.08)}
+.acc-cab{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:none;border:0;text-align:left;position:relative}
+.acc-tit{display:grid}
+.acc-tit b{font-family:var(--f-display);font-weight:400;font-size:20px}
+.acc-tit small{color:var(--muted);font-size:13px}
+.acc-dir{display:flex;align-items:center;gap:10px}
+.acc-seta{color:var(--wine);font-size:22px;transition:transform .25s var(--ease)}
+.acc.aberto .acc-seta{transform:rotate(90deg)}
+.acc-cab .dot-novo{top:10px;right:10px;border-color:#fff}
+.acc-corpo{padding:0 16px 16px;display:grid;gap:12px;border-top:1px dashed var(--line);padding-top:12px;animation:inUp .25s var(--ease)}
+.acc-msg{margin:0;font-size:14px}
+.acc-msg.canc{color:#a3172b}
+.acc-pagar{background:var(--cream);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}
+.acc-pagar b{font-size:18px;margin-right:auto}
