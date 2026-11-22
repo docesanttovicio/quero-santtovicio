@@ -380,3 +380,23 @@ input,textarea,select{font-size:16px!important}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media (max-width:1280px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media print{.dash{display:block;background:#fff}.dash-side,.no-print,.drawer,.drawer-bg{display:none!important}.dash-main{padding:0}.box,.tbl-wrap{border:0}}
+
+/* ---------- Tela de senha do painel ---------- */
+.entrar{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-left,0px));
+  background:linear-gradient(180deg,rgba(53,6,16,.78),rgba(53,6,16,.94)),url(/img/capa.jpg) center/cover no-repeat,var(--wine-deep)}
+.entrar-card{width:100%;max-width:400px;background:var(--paper);border-radius:22px;padding:32px 28px 24px;display:grid;justify-items:center;text-align:center;
+  box-shadow:0 24px 60px rgba(20,2,6,.45);animation:sobe .45s var(--ease)}
+@keyframes sobe{from{transform:translateY(16px)}}
+.entrar-icone{width:64px;height:64px;border-radius:16px;box-shadow:0 6px 16px rgba(205,21,23,.3)}
+.entrar-eyebrow{margin-top:18px;color:var(--wine-soft)}
+.entrar-card h1{font-size:32px;line-height:1.05;margin-top:4px}
+.entrar-sub{margin:8px 0 22px;color:var(--muted);font-size:14px}
+.entrar-label{justify-self:start;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-bottom:6px}
+.entrar-campo{width:100%;display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;background:#fff;transition:border-color .2s,box-shadow .2s}
+.entrar-campo:focus-within{border-color:var(--wine);box-shadow:0 0 0 4px rgba(92,10,22,.1)}
+.entrar-campo input{flex:1;min-width:0;border:0;background:none;padding:14px;font:inherit;color:var(--ink);outline:none}
+.entrar-campo button{border:0;background:none;color:var(--wine);font-weight:600;font-size:13px;padding:0 14px;align-self:stretch}
+.entrar-erro{justify-self:start;text-align:left;color:#a3172b;font-size:13px;margin:8px 0 0}
+.entrar-btn{justify-content:center;margin-top:16px;padding-block:15px}
+.entrar-rodape{margin:16px 0 0;font-size:12px;color:var(--muted)}
+.carregando{min-height:100vh;min-height:100dvh;display:grid;place-items:center;background:var(--wine-deep);color:var(--cream);font-size:14px}

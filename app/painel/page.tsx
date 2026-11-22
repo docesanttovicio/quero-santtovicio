@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BRL, etapasDe, finalizado, nomeDia, nomeFaixa, restante, sinal, type Pedido } from "@/lib/regras";
 import Dashboard from "@/components/painel/Dashboard";
+import Entrar from "@/components/painel/Entrar";
 
 type Filtro = "ativos" | "todos" | "23" | "24";
 
@@ -13,7 +14,6 @@ export default function Painel() {
   const [zapLigado, setZapLigado] = useState(false);
   const [desktop, setDesktop] = useState(false);
   useEffect(() => { const m = matchMedia("(min-width: 1024px)"); const f = () => setDesktop(m.matches); f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
-  const [senha, setSenha] = useState(""), [erro, setErro] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("ativos");
   const [som, setSom] = useState(false);
   const [toast, setToast] = useState("");
@@ -69,27 +69,15 @@ export default function Painel() {
     else { setZap((z) => ({ ...z, [p.codigo]: { msg: j.whatsapp, pix: j.whatsappPix ?? undefined } })); avisar(j.envio === "erro" ? "O WhatsApp automático falhou. Envie pelos botões." : "Etapa atualizada. Agora envie o WhatsApp."); }
   }
 
-  if (estado === "carregando") return <div className="app panel"><div className="center muted">Carregando…</div></div>;
-  if (estado === "login") return (
-    <div className="app panel"><form className="login pad" onSubmit={async (e) => {
-      e.preventDefault(); setErro("");
-      const r = await fetch("/api/painel", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ senha }) });
-      if (r.ok) { setSom(true); carregar(); } else setErro((await r.json()).erro);
-    }}>
-      <h2 style={{ fontSize: 28 }}>Painel da loja</h2>
-      <label className="small muted" htmlFor="senha">Senha</label>
-      <input id="senha" type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} />
-      <button className="btn" style={{ justifyContent: "center" }}>Entrar</button>
-      {erro && <p className="err">{erro}</p>}
-    </form></div>
-  );
+  if (estado === "carregando") return <div className="carregando">Carregando…</div>;
+  if (estado === "login") return <Entrar onEntrou={() => { setSom(true); carregar(); }} />;
 
   if (desktop) return <Dashboard pedidos={pedidos} carregar={carregar} acao={acao} avisar={avisar} toast={toast} banco={banco} whatsapp={zapLigado} novos={novos} som={som} setSom={setSom} />;
 
   const lista = pedidos.filter((p) => filtro === "todos" ? true : filtro === "ativos" ? !finalizado(p) : p.dia.endsWith(filtro));
   return (
     <div className="app panel">
-      <div className="top pad" style={{ background: "#f6ece6" }}><span /><h2>Painel da loja</h2><span /></div>
+      <div className="top pad" style={{ background: "#f6ece6" }}><span /><h2>Painel da loja</h2><button className="link small" onClick={async () => { await fetch("/api/painel", { method: "DELETE" }); location.reload(); }}>Sair</button></div>
       <div className="pad" style={{ paddingBlock: "16px 40px" }}>
         {!som && <div className="note" style={{ marginBottom: 12 }}>O alarme sonoro precisa de um toque para ser liberado pelo navegador. <button className="link" onClick={() => setSom(true)}>Ativar som</button></div>}
         {novos > 0 && <div className="alarm" style={{ marginBottom: 12 }}><div style={{ fontSize: 26 }}>🔔</div>

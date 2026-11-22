@@ -23,6 +23,10 @@ export async function entrar() {
   });
 }
 
+export async function sair() {
+  (await cookies()).delete(COOKIE);
+}
+
 export async function logado() {
   if (!segredo()) return false;
   const v = (await cookies()).get(COOKIE)?.value;

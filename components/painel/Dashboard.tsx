@@ -52,6 +52,7 @@ export default function Dashboard(props: Props) {
           <span>WhatsApp automático: {props.whatsapp ? "ligado" : "desligado (envio manual)"}</span>
           {props.banco === "arquivo" && <span>Modo teste (sem banco)</span>}
           <a href="/" target="_blank" rel="noreferrer">Abrir a loja ↗</a>
+          <button onClick={async () => { await fetch("/api/painel", { method: "DELETE" }); location.reload(); }}>Sair do painel</button>
         </div>
       </aside>
       <main className="dash-main">
