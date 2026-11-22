@@ -1,5 +1,6 @@
 import "server-only";
 import { BRL, nomeDia, nomeFaixa, type Pedido } from "./regras";
+import { SITE } from "./site";
 
 // Aviso de pedido novo no Telegram da loja (opcional). Precisa de TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID.
 export async function avisarLoja(p: Pedido) {
@@ -11,7 +12,7 @@ export async function avisarLoja(p: Pedido) {
     `${nomeDia(p.dia)}, ${nomeFaixa(p.faixa)} · ${p.modo === "entrega" ? "Entrega" : "Retirada"}`,
     ...p.itens.map((i) => `${i.qtd}× ${i.nome} (${i.variante})${i.obs ? ` — ${i.obs}` : ""}`),
     `Total dos produtos: ${BRL(p.subtotal)}`,
-    process.env.SITE_URL ? `${process.env.SITE_URL}/painel` : "",
+    `${SITE}/painel`,
   ].filter(Boolean).join("\n");
   try {
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

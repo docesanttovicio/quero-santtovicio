@@ -35,7 +35,7 @@ Acompanhe: {{6}}
 Obrigado pela preferência!
 ```
 
-Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = Quinta, 24/12, 13h às 16h · {{4}} = R$ 90,00 · {{5}} = Segue a nossa chave Pix logo abaixo. · {{6}} = https://quero-santtovicio.vercel.app/pedido/SV-0001
+Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = Quinta, 24/12, 13h às 16h · {{4}} = R$ 90,00 · {{5}} = Segue a nossa chave Pix logo abaixo. · {{6}} = https://quero.santtovicio.com.br/pedido/SV-0001
 
 ### `sv_sinal_recebido`
 

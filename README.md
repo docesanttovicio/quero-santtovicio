@@ -24,7 +24,7 @@ A senha do painel está em `.env.local` (`PAINEL_SENHA`).
    Em *Project Settings → API*, copie a *Project URL* e a chave *service_role*.
 2. **Site (Vercel, grátis):** suba esta pasta para um repositório no GitHub e importe na vercel.com.
    Em *Settings → Environment Variables*, cadastre as variáveis do `.env.example`
-   (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PAINEL_SENHA`, `PAINEL_SEGREDO`, `SITE_URL`, `PIX_CHAVE`, `ORIGEM_ENDERECO`…).
+   (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PAINEL_SENHA`, `PAINEL_SEGREDO`, `PIX_CHAVE`, `ORIGEM_ENDERECO`…).
 3. **Distância exata (opcional):** crie uma chave da *Distance Matrix API* no Google Cloud e coloque em `GOOGLE_MAPS_KEY`.
    Sem ela, a taxa usa a tabela de bairros de `lib/taxa.ts`.
 4. **Aviso no celular (opcional):** crie um bot com o @BotFather no Telegram, mande uma mensagem para ele

@@ -1,4 +1,5 @@
 import { BRL, nomeDia, nomeFaixa, restante, sinal, type Pedido } from "./regras";
+import { SITE } from "./site";
 
 // Modelos de mensagem do WhatsApp (API oficial da Meta). Cada um precisa ser criado e aprovado no
 // WhatsApp Manager com EXATAMENTE este nome e este texto, categoria "Utilidade", idioma "Português (BR)".
@@ -43,7 +44,7 @@ export function mensagem(p: Pedido): Mensagem {
   const pagar = p.pagamento === "pix" && process.env.PIX_CHAVE
     ? "Segue a nossa chave Pix logo abaixo."
     : p.pagamento === "pix" ? "Em seguida enviamos a nossa chave Pix por aqui." : "Em seguida enviamos o link de pagamento do cartão por aqui.";
-  const link = process.env.SITE_URL ? `${process.env.SITE_URL}/pedido/${p.codigo}?t=${p.token}` : "pelo link do site";
+  const link = `${SITE}/pedido/${p.codigo}?t=${p.token}`;
   const modelo = (p.modo === "retirada" ? RETIRADA : ENTREGA)[p.etapa];
 
   const params: Record<NomeModelo, string[]> = {
