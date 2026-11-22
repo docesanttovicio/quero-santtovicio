@@ -19,7 +19,7 @@ export default function Ficha({ p, acao, avisar, whatsapp, fechar }: { p: Pedido
   useEffect(() => { setZap({}); setTexto(""); }, [p.codigo]);
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === "Escape" && fechar(); addEventListener("keydown", k); return () => removeEventListener("keydown", k); }, [fechar]);
 
-  async function rodar(body: Record<string, unknown>) { setOcupado(true); const j = await acao(p, body); setOcupado(false); return j; }
+  async function rodar(body: Record<string, unknown>) { setOcupado(true); try { return await acao(p, body); } finally { setOcupado(false); } }
   async function avancar() {
     const j = await rodar({ acao: "avancar", de: p.etapa }); if (!j) return;
     if (j.envio === "enviado") avisar("Etapa atualizada e WhatsApp enviado ✓");

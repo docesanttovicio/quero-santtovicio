@@ -47,11 +47,20 @@ export default function Painel() {
   const avisar = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2400); };
 
   async function acao(p: Pedido, body: Record<string, unknown>) {
-    const r = await fetch(`/api/painel/${p.codigo}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    const j = await r.json();
+    // Nunca deixa o botão travado: sem resposta do servidor, avisa e libera.
+    let r: Response, j: { erro?: string; pedido?: Pedido };
+    try {
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 20000);
+      r = await fetch(`/api/painel/${p.codigo}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: ctl.signal });
+      clearTimeout(t);
+      j = await r.json();
+    } catch {
+      avisar("Sem resposta do servidor. Confira a internet e recarregue a página."); return null;
+    }
+    if (r.status === 401) { avisar("Sua sessão expirou. Entre de novo."); setEstado("login"); return null; }
     if (!r.ok) { avisar(j.erro || "Não deu certo."); carregar(); return null; }
-    setPedidos((l) => l.map((x) => (x.codigo === p.codigo ? j.pedido : x)));
-    return j as { pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro"; erro?: string };
+    setPedidos((l) => l.map((x) => (x.codigo === p.codigo ? (j.pedido as Pedido) : x)));
+    return j as unknown as { pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro"; erro?: string };
   }
   async function avancar(p: Pedido) {
     const j = await acao(p, { acao: "avancar", de: p.etapa });
