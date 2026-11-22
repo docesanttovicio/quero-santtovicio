@@ -69,7 +69,7 @@ export default function Cardapio({ avisar }: { avisar: (m: string) => void }) {
         </div>
       ))}
       <div className="savebar">
-        {mudou && <button className="btn line" onClick={() => setLista(JSON.parse(original))}>Desfazer</button>}
+        {mudou && <button className="btn outline" onClick={() => setLista(JSON.parse(original))}>Desfazer</button>}
         <button className="btn" disabled={!mudou || salvando} onClick={salvar}>{salvando ? "Salvando…" : mudou ? "Salvar cardápio" : "Tudo salvo"}</button>
       </div>
     </>

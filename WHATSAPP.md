@@ -29,6 +29,7 @@ Oi, {{1}}! Aqui é a Santto Vício. Recebemos sua encomenda {{2}} para {{3}}.
 
 Para confirmar, falta o sinal de {{4}}.
 {{5}}
+Depois de pagar, mande o comprovante aqui nesta conversa.
 
 Acompanhe: {{6}}
 
@@ -71,7 +72,7 @@ Entrega: {{4}}
 Total: {{5}}
 {{6}}
 
-Assim que o pagamento cair, despachamos.
+Depois de pagar, mande o comprovante aqui nesta conversa. Assim que conferirmos, despachamos.
 ```
 
 Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = R$ 90,00 · {{4}} = R$ 52,00 · {{5}} = R$ 142,00 · {{6}} = Segue a nossa chave Pix logo abaixo.
@@ -99,7 +100,7 @@ Chave Pix da Santto Vício:
 
 {{1}}
 
-Toque e segure na chave para copiar.
+Toque e segure na chave para copiar. Depois de pagar, mande o comprovante aqui.
 ```
 
 Exemplos: {{1}} = doce.santtovicio@gmail.com

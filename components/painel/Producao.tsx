@@ -28,7 +28,7 @@ export default function Producao({ pedidos }: { pedidos: Pedido[] }) {
         <div className="row-acts no-print">
           <div className="seg2">{[...DIAS.map((d) => [d.id, d.nome]), ["todos", "Os dois dias"]].map(([v, n]) => <button key={v} className={dia === v ? "on" : ""} onClick={() => setDia(v)}>{n}</button>)}</div>
           <label className="switch"><input type="checkbox" checked={semSinal} onChange={(e) => setSemSinal(e.target.checked)} />Contar pedidos sem sinal</label>
-          <button className="btn line sm" onClick={() => print()}>Imprimir</button>
+          <button className="btn outline sm" onClick={() => print()}>Imprimir</button>
         </div>
       </div>
       <div className="tbl-wrap">

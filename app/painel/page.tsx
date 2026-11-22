@@ -110,6 +110,7 @@ export default function Painel() {
                 </div>}
                 <div><span>{p.modo === "entrega" ? "Restante + entrega" : "Restante na retirada"}</span><span className="price">{BRL(restante(p))}</span></div>
               </div>
+              {(p.etapa === 0 || (p.modo === "entrega" && p.etapa === 3)) && <p className="aviso-comp">🧾 Antes de confirmar, confira se o comprovante de {BRL(p.etapa === 0 ? sinal(p) : restante(p))} chegou no WhatsApp da loja.</p>}
               <div className="acts">
                 {p.novo && <button className="btn ghost" onClick={() => acao(p, { acao: "visto" })}>Visto</button>}
                 {!finalizado(p) ? <button className={"btn" + (p.etapa === 3 ? " ok" : "")} onClick={() => avancar(p)}>{s.acao}</button> : <span className="done-badge">✓ Concluído</span>}

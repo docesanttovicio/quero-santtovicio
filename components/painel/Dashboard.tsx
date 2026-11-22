@@ -113,7 +113,7 @@ function Pedidos({ pedidos, sel, setSel, novos }: Props & { sel: string | null; 
     <>
       <div className="dash-head">
         <div><h1>Pedidos</h1><p>{k.total} no total · {k.ativos} em andamento{novos ? ` · ${novos} novo${novos > 1 ? "s" : ""} esperando você` : ""}</p></div>
-        <button className="btn line sm no-print" onClick={exportar}>Exportar planilha</button>
+        <button className="btn outline sm no-print" onClick={exportar}>Exportar planilha</button>
       </div>
       <div className="kpis">
         <div className="kpi"><span>Vendas confirmadas</span><b>{BRL(k.vendas)}</b><small>pedidos com sinal pago</small></div>

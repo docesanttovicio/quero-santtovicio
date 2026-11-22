@@ -9,7 +9,7 @@ export default function Acompanhar({ params }: { params: Promise<{ codigo: strin
   const { codigo } = use(params);
   const sp = useSearchParams();
   const t = sp.get("t") ?? "";
-  const [p, setP] = useState<(PedidoPublico & { pix?: string | null }) | null>(null);
+  const [p, setP] = useState<(PedidoPublico & { pix?: string | null; zapLoja?: string | null }) | null>(null);
   const [copiado, setCopiado] = useState(false);
   const campoPix = useRef<HTMLInputElement>(null);
   const [erro, setErro] = useState("");
@@ -49,7 +49,14 @@ export default function Acompanhar({ params }: { params: Promise<{ codigo: strin
           {devido && <div className="block"><div className="paybox">
             <span className="eyebrow muted">Pagamento pendente</span><h3>{devido.t}</h3>
             <div className="price" style={{ fontSize: 30, margin: "4px 0" }}>{BRL(devido.v)}</div>
-            <small className="muted">{p.pagamento === "pix" ? "A chave Pix chega no seu WhatsApp." : "O link de pagamento chega no seu WhatsApp."}</small>
+            <small className="muted">{p.pagamento === "pix" ? "A chave Pix está mais abaixo, com botão de copiar, e também no seu WhatsApp." : "O link de pagamento chega no seu WhatsApp."}</small>
+            <div className="comprovante">
+              <b>Depois de pagar, mande o comprovante</b>
+              <span>É assim que confirmamos o seu pagamento{p.etapa === 3 ? " e liberamos a entrega" : ""}.</span>
+              {p.zapLoja
+                ? <a className="btn ok wide" href={`https://wa.me/${p.zapLoja}?text=${encodeURIComponent(`Oi! Segue o comprovante do ${p.etapa === 0 ? "sinal" : "restante"} da encomenda ${p.codigo} (${BRL(devido.v)}).`)}`} target="_blank" rel="noreferrer">Enviar comprovante no WhatsApp</a>
+                : <span>Responda à nossa mensagem no WhatsApp com a foto ou o PDF do comprovante.</span>}
+            </div>
           </div></div>}
           <div className="block"><ol className="steps">
             {S.map((s, i) => <li key={i} className={i < p.etapa ? "done" : i === p.etapa ? "now" : ""}><span className="dot">{i < p.etapa ? "✓" : ""}</span><div><b>{s.t}</b><small>{i <= p.etapa ? s.d : ""}</small></div></li>)}

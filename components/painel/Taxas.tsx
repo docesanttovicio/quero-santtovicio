@@ -56,7 +56,7 @@ export default function Taxas({ avisar, recarregar }: { avisar: (m: string) => v
           </div>
           <div className="row-acts" style={{ marginTop: 14 }}>
             <button className="btn sm" disabled={!mudou || salvando} onClick={salvar}>{salvando ? "Salvando…" : mudou ? "Salvar taxas" : "Tudo salvo"}</button>
-            {mudou && <button className="btn line sm" onClick={() => setT(JSON.parse(orig))}>Desfazer</button>}
+            {mudou && <button className="btn outline sm" onClick={() => setT(JSON.parse(orig))}>Desfazer</button>}
           </div>
         </div>
         <div className="box">

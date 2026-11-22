@@ -54,12 +54,13 @@ export default function Ficha({ p, acao, avisar, whatsapp, fechar }: { p: Pedido
         <div className="body">
           <section>
             <div className="row-acts">
-              {p.novo && <button className="btn line sm" disabled={ocupado} onClick={() => rodar({ acao: "visto" })}>Marcar como visto</button>}
+              {p.novo && <button className="btn outline sm" disabled={ocupado} onClick={() => rodar({ acao: "visto" })}>Marcar como visto</button>}
               {!finalizado(p) && prox && <button className={"btn sm" + (p.etapa === 3 ? " ok" : "")} disabled={ocupado} onClick={avancar}>{prox}</button>}
               {finalizado(p) && <span className="done-badge">✓ Concluído</span>}
               {zap.msg && <a className="btn ok sm" href={zap.msg} target="_blank" rel="noreferrer" onClick={() => setZap((z) => ({ ...z, msg: undefined }))}>Enviar no WhatsApp</a>}
               {!zap.msg && zap.pix && <a className="btn ok sm" href={zap.pix} target="_blank" rel="noreferrer" onClick={() => setZap({})}>Enviar chave Pix</a>}
             </div>
+            {(p.etapa === 0 || (p.modo === "entrega" && p.etapa === 3)) && <p className="aviso-comp">🧾 Antes de confirmar, confira se o comprovante de {BRL(p.etapa === 0 ? sinal(p) : restante(p))} chegou no WhatsApp da loja.</p>}
             {!finalizado(p) && <p className="small muted" style={{ margin: "8px 0 0" }}>Próxima etapa: {S[p.etapa + 1]?.t}. {whatsapp ? "O cliente recebe o aviso no WhatsApp automaticamente." : "Depois, envie o aviso pelo botão verde."}</p>}
           </section>
 
@@ -114,7 +115,7 @@ export default function Ficha({ p, acao, avisar, whatsapp, fechar }: { p: Pedido
             <textarea value={texto} onChange={(ev) => setTexto(ev.target.value)} maxLength={1000} placeholder={`Escreva para ${p.nome.split(" ")[0]}…`} aria-label="Mensagem para o cliente" />
             <div className="row-acts" style={{ marginTop: 8 }}>
               {whatsapp && <button className="btn sm" disabled={!texto.trim() || ocupado} onClick={() => mandar(false)}>Enviar pelo WhatsApp</button>}
-              <button className={"btn sm" + (whatsapp ? " line" : "")} disabled={!texto.trim() || ocupado} onClick={() => mandar(true)}>Abrir no WhatsApp</button>
+              <button className={"btn sm" + (whatsapp ? " outline" : "")} disabled={!texto.trim() || ocupado} onClick={() => mandar(true)}>Abrir no WhatsApp</button>
             </div>
             <p className="small muted" style={{ margin: "8px 0 0" }}>
               {whatsapp ? "Pelo envio automático, a Meta só entrega texto livre se o cliente tiver falado com a loja nas últimas 24h. Fora disso, use “Abrir no WhatsApp”." : "Abre o WhatsApp com a mensagem pronta. Ela também fica registrada aqui e na página do cliente."}
