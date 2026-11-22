@@ -35,6 +35,7 @@ export async function PUT(req: Request) {
       p.dest = txt(n.dest, 30) || undefined;
       p.esgotado = Boolean(n.esgotado);
       p.oculto = Boolean(n.oculto);
+      p.grande = Boolean(n.grande);
       if (Array.isArray(n.v) && n.v.length === p.v.length) {
         p.v = p.v.map((v, i) => ({ n: txt(n.v[i]?.n, 40) || v.n, p: num(n.v[i]?.p, 0, 5000) ?? v.p }));
       }

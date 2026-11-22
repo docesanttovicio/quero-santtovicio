@@ -147,12 +147,22 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
           </div></nav>
           <div className="pad" id="menu">
             <div className="section" id="s-destaques"><h2>Destaques</h2>
-              <div className="dest">{PRODUTOS.filter((p) => p.dest).map((p) => (
-                <button key={p.id} className="dcard" type="button" onClick={() => setItem(p)}>
+              {PRODUTOS.filter((p) => p.dest && p.grande).map((p) => (
+                <button key={p.id} className="dgrande" type="button" onClick={() => setItem(p)}>
+                  <div className="dg-foto"><Fotos nomes={p.fotos?.length ? p.fotos : [p.img]} /><span className="badge">{p.dest}</span></div>
+                  <div className="dg-txt">
+                    <span className="eyebrow ey">{p.ey}</span>
+                    <h3>{p.nome}</h3>
+                    <p>{p.desc}</p>
+                    <div className="dg-rodape"><span className="price">{p.v.length > 1 && <small>a partir de </small>}{BRL(menorPreco(p))}</span><span className="btn sm">{p.esgotado ? "Esgotado" : "Quero"}</span></div>
+                  </div>
+                </button>
+              ))}
+              <div className="dmini-lista">{PRODUTOS.filter((p) => p.dest && !p.grande).map((p) => (
+                <button key={p.id} className="dmini" type="button" onClick={() => setItem(p)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <div className="ph"><img src={img(p.img)} alt="" /><span className="badge">{p.dest}</span></div>
-                  <div className="from muted">{p.v.length > 1 ? "a partir de" : " "}</div>
-                  <div className="price">{BRL(menorPreco(p))}</div><div className="nm">{p.nome}</div>
+                  <img src={img(p.img)} alt="" />
+                  <span className="dm-txt"><span className="dm-selo">{p.dest}</span><b>{p.nome}</b><span className="dm-preco">{p.v.length > 1 ? "a partir de " : ""}<span className="price">{BRL(menorPreco(p))}</span></span></span>
                 </button>))}
               </div>
             </div>
@@ -223,9 +233,28 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
       )}
 
       {item && <FolhaItem p={item} onFechar={() => setItem(null)} onAdd={(vi, q, obs, el) => { adicionar(item.id, vi, q, obs, el); }} />}
-      {revisar && <Revisao linhas={linhas} subtotal={subtotal} onFechar={() => setRevisar(false)} onEnviado={(codigo, token) => { lembrarPedido(codigo, token); setSacola([]); try { localStorage.removeItem(CHAVE); } catch {} router.push(`/pedido/${codigo}?t=${token}&novo=1`); }} />}
+      {revisar && <Revisao linhas={linhas} subtotal={subtotal} onFechar={() => setRevisar(false)} onEnviado={(codigo, token) => { lembrarPedido(codigo, token); guardarDados(dadosParaGuardar()); setSacola([]); try { localStorage.removeItem(CHAVE); } catch {} router.push(`/pedido/${codigo}?t=${token}&novo=1`); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
+  );
+}
+
+/* ---------- Fotos que se alternam (destaque grande) ---------- */
+function Fotos({ nomes }: { nomes: string[] }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (nomes.length < 2 || reduz()) return;
+    const t = setInterval(() => setI((x) => (x + 1) % nomes.length), 3500);
+    return () => clearInterval(t);
+  }, [nomes.length]);
+  return (
+    <>
+      {nomes.map((n, k) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img key={n} src={img(n)} alt="" className={"dg-slide" + (k === i ? " on" : "")} loading={k ? "lazy" : "eager"} />
+      ))}
+      {nomes.length > 1 && <span className="dg-pontos" aria-hidden="true">{nomes.map((n, k) => <i key={n} className={k === i ? "on" : ""} />)}</span>}
+    </>
   );
 }
 
@@ -353,17 +382,37 @@ const FORM_VAZIO: Form = { dia: "", faixa: "", modo: "entrega", nome: "", whatsa
 let formAtual: Form = FORM_VAZIO;
 let taxaAtual: { km: number; valor: number } | null = null;
 
+// Dados do cliente guardados no próprio aparelho depois do primeiro pedido (para não digitar tudo de novo).
+const CHAVE_DADOS = "sv_dados";
+type DadosSalvos = Pick<Form, "nome" | "whatsapp" | "cep" | "rua" | "numero" | "complemento" | "bairro" | "modo" | "pagamento">;
+function lerDadosSalvos(): DadosSalvos | null {
+  try { const d = JSON.parse(localStorage.getItem(CHAVE_DADOS) || "null"); return d && d.nome && d.whatsapp ? d : null; } catch { return null; }
+}
+export function guardarDados(f: Form) {
+  const { nome, whatsapp, cep, rua, numero, complemento, bairro, modo, pagamento } = f;
+  try { localStorage.setItem(CHAVE_DADOS, JSON.stringify({ nome, whatsapp, cep, rua, numero, complemento, bairro, modo, pagamento })); } catch {}
+}
+export const dadosParaGuardar = () => formAtual;
+
 function Dados({ className, subtotal, onVoltar, onRevisar, avisar }: { className: string; subtotal: number; onVoltar: () => void; onRevisar: () => void; avisar: (m: string) => void }) {
   const [f, setF] = useState<Form>(formAtual);
   const [taxa, setTaxa] = useState<{ km: number; valor: number } | null | "carregando">(taxaAtual);
   const [erro, setErro] = useState("");
   const set = (k: keyof Form, v: string) => setF((x) => ({ ...x, [k]: v }));
-  useEffect(() => { formAtual = f; try { localStorage.setItem("sv_dados", JSON.stringify({ nome: f.nome, whatsapp: f.whatsapp })); } catch {} }, [f]);
-  useEffect(() => { try { const d = JSON.parse(localStorage.getItem("sv_dados") || "{}"); if (!formAtual.nome && d.nome) setF((x) => ({ ...x, nome: d.nome, whatsapp: d.whatsapp || "" })); } catch {} }, []);
+  const [editando, setEditando] = useState(true);
+  const cepVisto = useRef(formAtual.cep.replace(/\D/g, "")); // CEP já resolvido: não buscar de novo por cima do que está salvo
+  useEffect(() => { formAtual = f; }, [f]);
+  // Primeira vez nesta tela: se o aparelho já tem dados de um pedido anterior, preenche e mostra o cartão resumido.
+  useEffect(() => {
+    const d = lerDadosSalvos();
+    if (d && !formAtual.nome) { cepVisto.current = (d.cep || "").replace(/\D/g, ""); setF((x) => ({ ...x, ...d })); setEditando(false); }
+    else if (d && formAtual.nome === d.nome && formAtual.whatsapp === d.whatsapp) setEditando(false);
+  }, []);
 
   // CEP → rua e bairro
   useEffect(() => {
-    const c = f.cep.replace(/\D/g, ""); if (c.length !== 8) return;
+    const c = f.cep.replace(/\D/g, ""); if (c.length !== 8 || c === cepVisto.current) return;
+    cepVisto.current = c;
     let vivo = true;
     fetch(`/api/cep?cep=${c}`).then((r) => r.json()).then((j) => { if (vivo && j) setF((x) => ({ ...x, rua: x.rua || j.rua, bairro: j.bairro || x.bairro })); }).catch(() => {});
     return () => { vivo = false; };
@@ -407,6 +456,22 @@ function Dados({ className, subtotal, onVoltar, onRevisar, avisar }: { className
         <div className="block"><h3>Como vai chegar?</h3>
           <div className="seg">{radio("modo", "entrega", "Entrega", "Motorista de app")}{radio("modo", "retirada", "Retirada", "Local combinado pelo WhatsApp")}</div>
         </div>
+        {!editando && f.nome && f.whatsapp && (!ent || (f.rua && f.numero && f.bairro)) ? (
+        <div className="block"><h3>Seus dados</h3>
+          <div className="dados-salvos">
+            <div className="ds-topo"><span className="eyebrow">Usando os dados do seu último pedido</span><button type="button" className="link small" onClick={() => setEditando(true)}>Editar</button></div>
+            <b>{f.nome}</b>
+            <span>{f.whatsapp}</span>
+            {ent && <span>{f.rua}, {f.numero}{f.complemento ? ` · ${f.complemento}` : ""}<br />{f.bairro}{f.cep ? ` · ${f.cep}` : ""}</span>}
+            <button type="button" className="link small ds-outro" onClick={() => { setF((x) => ({ ...x, nome: "", whatsapp: "", cep: "", rua: "", numero: "", complemento: "", bairro: "" })); setEditando(true); }}>Usar outros dados</button>
+          </div>
+          {ent && <div className="fee" style={{ marginTop: 12 }}>
+            <div><b style={{ fontWeight: 600 }}>Taxa de entrega</b><div className="km">{taxa === "carregando" ? "Calculando…" : tx ? `cerca de ${tx.km} km da doceria` : "Não conseguimos calcular para esse endereço; passamos o valor no WhatsApp."}</div></div>
+            {tx && <span className="price">{BRL(tx.valor)}</span>}
+          </div>}
+          {!ent && <div className="note"><b>Retirada só com orientação.</b> Por segurança, o local e o horário da retirada são combinados com você pelo WhatsApp. Depois de enviar o pedido, a gente te chama com as instruções. Não venha sem falar com a gente antes.</div>}
+        </div>
+        ) : (
         <div className="block"><h3>Seus dados</h3>
           <div className="field"><label htmlFor="nome">Nome</label><input id="nome" autoComplete="name" value={f.nome} onChange={(e) => set("nome", e.target.value)} /></div>
           <div className="field"><label htmlFor="zap">WhatsApp</label><input id="zap" inputMode="tel" autoComplete="tel" placeholder="(21) 99999-9999" value={f.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} /><small className="muted">As atualizações da encomenda chegam neste WhatsApp.</small></div>
@@ -428,6 +493,7 @@ function Dados({ className, subtotal, onVoltar, onRevisar, avisar }: { className
             <div className="note"><b>Retirada só com orientação.</b> Por segurança, o local e o horário da retirada são combinados com você pelo WhatsApp. Depois de enviar o pedido, a gente te chama com as instruções. Não venha sem falar com a gente antes.</div>
           )}
         </div>
+        )}
         <div className="block"><h3>Como vai pagar?</h3>
           <div className="seg">{radio("pagamento", "pix", "Pix", "Enviamos a chave no WhatsApp")}{radio("pagamento", "cartao", "Link de cartão", "Enviamos o link no WhatsApp")}</div>
           <div className="totals" style={{ marginTop: 16 }}>

@@ -53,6 +53,7 @@ export default function Cardapio({ avisar }: { avisar: (m: string) => void }) {
                 <div style={{ display: "grid", gap: 10, paddingTop: 18 }}>
                   <label className="switch"><input type="checkbox" checked={!!p.esgotado} onChange={(e) => muda(p.id, (x) => ({ ...x, esgotado: e.target.checked }))} />Esgotado</label>
                   <label className="switch"><input type="checkbox" checked={!!p.oculto} onChange={(e) => muda(p.id, (x) => ({ ...x, oculto: e.target.checked }))} />Esconder da loja</label>
+                  <label className="switch" title="Aparece num cartão de largura inteira no topo dos destaques (precisa ter selo)"><input type="checkbox" checked={!!p.grande} onChange={(e) => muda(p.id, (x) => ({ ...x, grande: e.target.checked, dest: e.target.checked && !x.dest ? "Destaque" : x.dest }))} />Destaque grande</label>
                 </div>
                 {aberto === p.id && (
                   <div style={{ gridColumn: "2 / -1", display: "grid", gap: 8 }}>
