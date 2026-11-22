@@ -3,6 +3,7 @@
 import { use, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { lembrarPedido, lerSalvos, marcarVisto } from "@/lib/meus-pedidos";
 import { BRL, etapasDe, nomeDia, nomeFaixa, restante, sinal, type PedidoPublico } from "@/lib/regras";
 
 export default function Acompanhar({ params }: { params: Promise<{ codigo: string }> }) {
@@ -13,12 +14,13 @@ export default function Acompanhar({ params }: { params: Promise<{ codigo: strin
   const [copiado, setCopiado] = useState(false);
   const campoPix = useRef<HTMLInputElement>(null);
   const [erro, setErro] = useState("");
+  const [varios, setVarios] = useState(false);
   const vistos = useRef(0);
 
   useEffect(() => {
     let vivo = true;
     const buscar = () => fetch(`/api/pedidos/${codigo}?t=${encodeURIComponent(t)}`, { cache: "no-store" })
-      .then(async (r) => { const j = await r.json(); if (!vivo) return; if (!r.ok) setErro(j.erro || "Pedido não encontrado."); else setP(j); })
+      .then(async (r) => { const j = await r.json(); if (!vivo) return; if (!r.ok) setErro(j.erro || "Pedido não encontrado."); else { setP(j); lembrarPedido(codigo, t); marcarVisto(codigo, j.historico.length); setVarios(lerSalvos().length > 1); } })
       .catch(() => {});
     buscar();
     const i = setInterval(buscar, 20000);
@@ -40,6 +42,10 @@ export default function Acompanhar({ params }: { params: Promise<{ codigo: strin
     <div className="app">
       <section className="enter-up">
         <div className="track-hero pad">
+          <div className="track-top">
+            <Link href="/" className="chip light">‹ Voltar à loja</Link>
+            {varios && <Link href="/pedidos" className="chip light">Meus pedidos</Link>}
+          </div>
           <span className="eyebrow" style={{ opacity: 0.8 }}>Sua encomenda</span>
           <h2>{S[p.etapa].t}</h2>
           <div className="code">{p.codigo} · {nomeDia(p.dia)}, {nomeFaixa(p.faixa)}</div>

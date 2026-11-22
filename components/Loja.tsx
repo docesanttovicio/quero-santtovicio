@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useRouter } from "next/navigation";
 import { CATEGORIAS, SUGESTOES, menorPreco, type Produto } from "@/lib/catalogo";
 import { BRL, DIAS, FAIXAS, PEDIDOS_ATE, SINAL } from "@/lib/regras";
+import { lembrarPedido, useMeusPedidos } from "@/lib/meus-pedidos";
 
 type Linha = { produtoId: string; vi: number; qtd: number; obs: string };
 type Vista = "loja" | "sacola" | "dados";
@@ -115,7 +116,7 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/img/capa-natal.jpg" alt="Mesa de Natal com Matilda, torta alemã, brownies, cookies e muffins" />
             <div className="hero-shade" />
-            <div className="hero-top pad"><span className="chip light">Rio de Janeiro</span></div>
+            <div className="hero-top pad"><span className="chip light">Rio de Janeiro</span><MeusPedidosBotao /></div>
           </div>
           <div className="store pad">
             <div className="store-row">
@@ -213,9 +214,22 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
       )}
 
       {item && <FolhaItem p={item} onFechar={() => setItem(null)} onAdd={(vi, q, obs, el) => { adicionar(item.id, vi, q, obs, el); }} />}
-      {revisar && <Revisao linhas={linhas} subtotal={subtotal} onFechar={() => setRevisar(false)} onEnviado={(codigo, token) => { setSacola([]); try { localStorage.removeItem(CHAVE); } catch {} router.push(`/pedido/${codigo}?t=${token}&novo=1`); }} />}
+      {revisar && <Revisao linhas={linhas} subtotal={subtotal} onFechar={() => setRevisar(false)} onEnviado={(codigo, token) => { lembrarPedido(codigo, token); setSacola([]); try { localStorage.removeItem(CHAVE); } catch {} router.push(`/pedido/${codigo}?t=${token}&novo=1`); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
+  );
+}
+
+/* ---------- Botão "Meus pedidos" (com bolinha quando há novidade) ---------- */
+function MeusPedidosBotao() {
+  const meus = useMeusPedidos();
+  if (!meus?.length) return null;
+  const novidade = meus.some((m) => m.novidade);
+  const href = meus.length === 1 ? `/pedido/${meus[0].codigo}?t=${encodeURIComponent(meus[0].token)}` : "/pedidos";
+  return (
+    <a className="chip light meus" href={href} aria-label={novidade ? "Meus pedidos, com novidade" : "Meus pedidos"}>
+      <span aria-hidden="true">🧾</span>Meus pedidos{novidade && <i className="dot-novo" aria-hidden="true" />}
+    </a>
   );
 }
 

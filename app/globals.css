@@ -406,3 +406,16 @@ input,textarea,select{font-size:16px!important}
 .comprovante b{color:var(--ink);font-size:15px}
 .comprovante .btn{justify-content:center;margin-top:4px;text-decoration:none}
 .aviso-comp{margin:10px 0 0;font-size:13px;background:#fff7ea;border:1px solid #f0c98a;color:#7a4a08;border-radius:10px;padding:8px 10px}
+
+/* ---------- Meus pedidos ---------- */
+.chip.meus{text-decoration:none;position:relative;padding-right:14px}
+.dot-novo{position:absolute;top:-3px;right:-3px;width:11px;height:11px;border-radius:50%;background:#ff3b30;border:2px solid var(--paper);animation:pulsa 1.4s ease-out infinite}
+@keyframes pulsa{0%{box-shadow:0 0 0 0 rgba(255,59,48,.65)}100%{box-shadow:0 0 0 10px rgba(255,59,48,0)}}
+.track-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;text-align:left}
+.track-top a{text-decoration:none}
+.lista-pedidos{display:grid;gap:12px;padding-block:20px 40px}
+.pcard{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--ink);position:relative}
+.pcard b{font-family:var(--f-display);font-weight:400;font-size:20px}
+.pcard small{color:var(--muted);font-size:13px;grid-column:1}
+.pcard .seta{grid-row:1 / span 3;grid-column:2;color:var(--wine);font-size:22px}
+.pcard .dot-novo{top:12px;right:12px;border-color:#fff}
