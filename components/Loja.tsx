@@ -381,7 +381,7 @@ function Dados({ className, subtotal, onVoltar, onRevisar, avisar }: { className
         </div>
         <div className="block"><h3>Seus dados</h3>
           <div className="field"><label htmlFor="nome">Nome</label><input id="nome" autoComplete="name" value={f.nome} onChange={(e) => set("nome", e.target.value)} /></div>
-          <div className="field"><label htmlFor="zap">WhatsApp</label><input id="zap" inputMode="tel" autoComplete="tel" placeholder="(21) 99999-9999" value={f.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} /></div>
+          <div className="field"><label htmlFor="zap">WhatsApp</label><input id="zap" inputMode="tel" autoComplete="tel" placeholder="(21) 99999-9999" value={f.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} /><small className="muted">As atualizações da encomenda chegam neste WhatsApp.</small></div>
           {ent ? (<>
             <div className="row2">
               <div className="field"><label htmlFor="cep">CEP</label><input id="cep" inputMode="numeric" autoComplete="postal-code" value={f.cep} onChange={(e) => set("cep", e.target.value)} /></div>

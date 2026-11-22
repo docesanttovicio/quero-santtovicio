@@ -6,6 +6,7 @@ import { estimarTaxa } from "@/lib/taxa";
 import { db } from "@/lib/banco";
 import { mensagem } from "@/lib/mensagens";
 import { avisarLoja } from "@/lib/avisos";
+import { enviarWhatsApp } from "@/lib/whatsapp";
 
 const txt = (v: unknown, max = 120) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -53,7 +54,8 @@ export async function POST(req: Request) {
     pagamento, etapa: 0, novo: true, historico: [],
   };
   const p = await db().criar(base);
-  p.historico.push({ etapa: 0, em: p.criadoEm, mensagem: mensagem(p) });
+  const m = mensagem(p);
+  p.historico.push({ etapa: 0, em: p.criadoEm, mensagem: m.texto, ...(await enviarWhatsApp(p.whatsapp, m)) });
   await db().salvar(p);
   await avisarLoja(p);
   return NextResponse.json({ codigo: p.codigo, token: p.token });
