@@ -431,3 +431,4 @@ input,textarea,select{font-size:16px!important}
 .cancelado-box .link{color:#7a1020;justify-self:start}
 .track-cancel{background:#fbe1e1;color:#7a1020;border-radius:14px;padding:14px;display:grid;gap:4px;font-size:14px}
 .track-cancel b{font-family:var(--f-display);font-weight:400;font-size:20px}
+.tabs-inner{scroll-behavior:auto;-webkit-overflow-scrolling:touch}

@@ -99,11 +99,20 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
     addEventListener("scroll", f, { passive: true });
     return () => removeEventListener("scroll", f);
   }, [vista]);
-  useEffect(() => { document.querySelector(`.tab[data-tab="${aba}"]`)?.scrollIntoView({ inline: "center", block: "nearest" }); }, [aba]);
+  // Centraliza a aba ativa rolando só a barra de abas (scrollIntoView rolaria a página e, no Safari, cancela a descida até a seção).
+  useEffect(() => {
+    const barra = document.querySelector<HTMLElement>(".tabs-inner"), b = barra?.querySelector<HTMLElement>(`.tab[data-tab="${aba}"]`);
+    // instantâneo de propósito: duas rolagens suaves ao mesmo tempo se cancelam
+    if (barra && b) barra.scrollLeft = Math.max(0, b.offsetLeft - (barra.clientWidth - b.offsetWidth) / 2);
+  }, [aba]);
   function irAba(id: string) {
-    setAba(id); travaAba.current = Date.now() + 700;
     const s = document.getElementById("s-" + id);
-    if (s) scrollTo({ top: s.getBoundingClientRect().top + scrollY - 56, behavior: reduz() ? "auto" : "smooth" });
+    if (!s) return;
+    // trava o "acompanhar a rolagem" enquanto a página desce até a seção
+    travaAba.current = Date.now() + 1200;
+    setAba(id);
+    const alturaAbas = document.querySelector<HTMLElement>(".tabs")?.offsetHeight ?? 50;
+    window.scrollTo({ top: s.getBoundingClientRect().top + window.scrollY - alturaAbas - 8, behavior: reduz() ? "auto" : "smooth" });
   }
 
   const barra = vista === "loja" ? (sacola.length ? "loja" : null) : vista;
