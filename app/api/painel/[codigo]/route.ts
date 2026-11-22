@@ -3,10 +3,10 @@ import { db } from "@/lib/banco";
 import { logado } from "@/lib/painel-auth";
 import { etapasDe, finalizado, round2, type Pedido } from "@/lib/regras";
 import { linkWhatsApp, mensagem, mensagemPix } from "@/lib/mensagens";
-import { enviarWhatsApp, notificarEtapa } from "@/lib/whatsapp";
+import { enviarTexto, enviarWhatsApp, notificarEtapa } from "@/lib/whatsapp";
 
 // Mensagens da etapa atual (a principal e, se houver, a da chave Pix), mais recentes no fim do histórico.
-const daEtapa = (p: Pedido) => p.historico.filter((h) => h.etapa === p.etapa);
+const daEtapa = (p: Pedido) => p.historico.filter((h) => h.etapa === p.etapa && !h.livre);
 
 // Ações da loja sobre um pedido: visto, taxa, avançar etapa (envia o WhatsApp sozinho) e reenviar.
 export async function POST(req: Request, { params }: { params: Promise<{ codigo: string }> }) {
@@ -38,6 +38,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ codigo:
       const r = await enviarWhatsApp(p.whatsapp, m);
       if (r.envio !== "manual") { h.envio = r.envio; h.erro = r.erro; }
     }
+  } else if (b.acao === "mensagem") {
+    // mensagem livre escrita no painel; fica no histórico (o cliente vê no acompanhamento)
+    const texto = typeof b.texto === "string" ? b.texto.trim().slice(0, 1000) : "";
+    if (!texto) return NextResponse.json({ erro: "Escreva a mensagem." }, { status: 400 });
+    const r = b.manual ? { envio: "manual" as const } : await enviarTexto(p.whatsapp, texto);
+    p.historico.push({ etapa: p.etapa, em: new Date().toISOString(), mensagem: texto, livre: true, ...r });
+    await db().salvar(p);
+    return NextResponse.json({ pedido: p, whatsapp: linkWhatsApp(p, texto), envio: r.envio, erro: "erro" in r ? r.erro : undefined });
   } else {
     return NextResponse.json({ erro: "Ação desconhecida." }, { status: 400 });
   }

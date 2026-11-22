@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CATEGORIAS, PRODUTOS, SUGESTOES, menorPreco, porId, type Produto } from "@/lib/catalogo";
+import { CATEGORIAS, SUGESTOES, menorPreco, type Produto } from "@/lib/catalogo";
 import { BRL, DIAS, FAIXAS, PEDIDOS_ATE, SINAL } from "@/lib/regras";
 
 type Linha = { produtoId: string; vi: number; qtd: number; obs: string };
@@ -12,6 +12,10 @@ const img = (n: string) => `/img/${n}.jpg`;
 const reduz = () => typeof window !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const CHAVE = "sv_sacola";
 
+// Cardápio vindo do servidor (editável pelo painel). Ocultos não chegam aqui.
+let PRODUTOS: Produto[] = [];
+const porId = (id: string) => PRODUTOS.find((p) => p.id === id);
+
 function pop(el: Element | null) {
   if (!el) return;
   el.classList.remove("bump");
@@ -19,7 +23,8 @@ function pop(el: Element | null) {
   el.classList.add("bump");
 }
 
-export default function Loja() {
+export default function Loja({ produtos }: { produtos: Produto[] }) {
+  PRODUTOS = produtos;
   const router = useRouter();
   const [sacola, setSacola] = useState<Linha[]>([]);
   const [vista, setVista] = useState<Vista>("loja");
@@ -146,7 +151,7 @@ export default function Loja() {
                 {PRODUTOS.filter((p) => p.cat === c.id).map((p) => (
                   <button key={p.id} className="item" type="button" onClick={() => setItem(p)}>
                     <div className="t"><span className="eyebrow ey">{p.ey}</span><h3>{p.nome}</h3><p>{p.desc}</p>
-                      <div className="pr">{p.v.length > 1 && <small>a partir de</small>}<span className="price">{BRL(menorPreco(p))}</span>{p.lim && <span className="tag">Limitado</span>}</div></div>
+                      <div className="pr">{p.v.length > 1 && <small>a partir de</small>}<span className="price">{BRL(menorPreco(p))}</span>{p.esgotado ? <span className="tag off">Esgotado</span> : p.lim && <span className="tag">Limitado</span>}</div></div>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <div className="thumb"><img src={img(p.img)} alt="" loading="lazy" />{qtdDe(p.id) > 0 && <span className="incart" key={qtdDe(p.id)}>{qtdDe(p.id)}</span>}</div>
                   </button>))}
@@ -186,7 +191,7 @@ export default function Loja() {
               ))}
               <button className="btn ghost wide" type="button" style={{ marginTop: 14, justifyContent: "center" }} onClick={() => ir("loja")}>Adicionar mais itens</button>
             </div>
-            <Sugestoes ids={SUGESTOES.filter((id) => !sacola.some((l) => l.produtoId === id)).slice(0, 4)} onAdd={(id, el) => { adicionar(id, 0, 1, "", el); avisar(`${porId(id)!.nome} na sacola`); }} />
+            <Sugestoes ids={SUGESTOES.filter((id) => porId(id) && !porId(id)!.esgotado && !sacola.some((l) => l.produtoId === id)).slice(0, 4)} onAdd={(id, el) => { adicionar(id, 0, 1, "", el); avisar(`${porId(id)!.nome} na sacola`); }} />
             <div className="block"><h3>Resumo</h3><div className="totals">
               <div><span>Subtotal dos produtos</span><span className="price">{BRL(subtotal)}</span></div>
               <div><span>Entrega</span><span className="muted">calculada no próximo passo</span></div>
@@ -311,8 +316,8 @@ function FolhaItem({ p, onFechar, onAdd }: { p: Produto; onFechar: () => void; o
         </div>
         <div className="sheet-foot pad">
           <div className="stepper"><button type="button" aria-label="Diminuir" disabled={q <= 1} onClick={() => setQ(q - 1)}>−</button><span>{q}</span><button type="button" aria-label="Aumentar" onClick={() => setQ(q + 1)}>+</button></div>
-          <button className="btn" type="button" style={{ flex: 1 }} disabled={vi < 0} onClick={() => { onAdd(vi, q, obs.trim(), foto.current); fechar(); }}>
-            <span>Adicionar</span><span>{BRL((vi >= 0 ? p.v[vi].p : menorPreco(p)) * q)}</span></button>
+          <button className="btn" type="button" style={{ flex: 1 }} disabled={vi < 0 || !!p.esgotado} onClick={() => { onAdd(vi, q, obs.trim(), foto.current); fechar(); }}>
+            <span>{p.esgotado ? "Esgotado" : "Adicionar"}</span><span>{BRL((vi >= 0 ? p.v[vi].p : menorPreco(p)) * q)}</span></button>
         </div>
       </div>
     </div>
@@ -346,11 +351,11 @@ function Dados({ className, subtotal, onVoltar, onRevisar, avisar }: { className
     if (f.modo !== "entrega" || !f.bairro.trim()) { setTaxa(null); taxaAtual = null; return; }
     setTaxa("carregando");
     const t = setTimeout(() => {
-      fetch("/api/taxa", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ cep: f.cep, rua: f.rua, numero: f.numero, bairro: f.bairro }) })
+      fetch("/api/taxa", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ cep: f.cep, rua: f.rua, numero: f.numero, bairro: f.bairro, dia: f.dia }) })
         .then((r) => r.json()).then((j) => { setTaxa(j); taxaAtual = j; }).catch(() => setTaxa(null));
     }, 500);
     return () => clearTimeout(t);
-  }, [f.modo, f.cep, f.rua, f.numero, f.bairro]);
+  }, [f.modo, f.cep, f.rua, f.numero, f.bairro, f.dia]);
 
   useEffect(() => {
     const h = () => {

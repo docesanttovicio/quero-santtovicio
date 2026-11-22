@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BRL, etapasDe, finalizado, nomeDia, nomeFaixa, restante, sinal, type Pedido } from "@/lib/regras";
+import Dashboard from "@/components/painel/Dashboard";
 
 type Filtro = "ativos" | "todos" | "23" | "24";
 
@@ -9,6 +10,9 @@ export default function Painel() {
   const [estado, setEstado] = useState<"carregando" | "login" | "ok">("carregando");
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [banco, setBanco] = useState("");
+  const [zapLigado, setZapLigado] = useState(false);
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => { const m = matchMedia("(min-width: 1024px)"); const f = () => setDesktop(m.matches); f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
   const [senha, setSenha] = useState(""), [erro, setErro] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("ativos");
   const [som, setSom] = useState(false);
@@ -21,7 +25,7 @@ export default function Painel() {
     const r = await fetch("/api/painel", { cache: "no-store" }).catch(() => null);
     if (!r) return;
     if (r.status === 401) return setEstado("login");
-    const j = await r.json(); setPedidos(j.pedidos); setBanco(j.banco); setEstado("ok");
+    const j = await r.json(); setPedidos(j.pedidos); setBanco(j.banco); setZapLigado(!!j.whatsapp); setEstado("ok");
   }, []);
   useEffect(() => { carregar(); const i = setInterval(carregar, 8000); return () => clearInterval(i); }, [carregar]);
 
@@ -47,7 +51,7 @@ export default function Painel() {
     const j = await r.json();
     if (!r.ok) { avisar(j.erro || "Não deu certo."); carregar(); return null; }
     setPedidos((l) => l.map((x) => (x.codigo === p.codigo ? j.pedido : x)));
-    return j as { pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro" };
+    return j as { pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro"; erro?: string };
   }
   async function avancar(p: Pedido) {
     const j = await acao(p, { acao: "avancar", de: p.etapa });
@@ -70,6 +74,8 @@ export default function Painel() {
       {erro && <p className="err">{erro}</p>}
     </form></div>
   );
+
+  if (desktop) return <Dashboard pedidos={pedidos} carregar={carregar} acao={acao} avisar={avisar} toast={toast} banco={banco} whatsapp={zapLigado} novos={novos} som={som} setSom={setSom} />;
 
   const lista = pedidos.filter((p) => filtro === "todos" ? true : filtro === "ativos" ? !finalizado(p) : p.dia.endsWith(filtro));
   return (

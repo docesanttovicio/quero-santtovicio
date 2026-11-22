@@ -49,3 +49,26 @@ export async function notificarEtapa(p: Pedido, em = new Date().toISOString()) {
   const pix = mensagemPix(p);
   if (pix) p.historico.push({ etapa: p.etapa, em, mensagem: pix.texto, pix: true, ...(await enviarWhatsApp(p.whatsapp, pix)) });
 }
+
+// Mensagem livre digitada no painel. A Meta só entrega texto livre se o cliente tiver mandado mensagem
+// para a loja nas últimas 24 horas; fora disso, a API devolve erro e o painel oferece abrir no WhatsApp.
+export async function enviarTexto(para: string, texto: string): Promise<ResultadoEnvio> {
+  if (!whatsappLigado()) return { envio: "manual" };
+  try {
+    const r = await fetch(`https://graph.facebook.com/${VERSAO}/${process.env.WHATSAPP_PHONE_ID}/messages`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`, "content-type": "application/json" },
+      body: JSON.stringify({ messaging_product: "whatsapp", to: numeroWhatsApp(para), type: "text", text: { body: texto } }),
+      cache: "no-store",
+    });
+    if (r.ok) return { envio: "enviado" };
+    const j = await r.json().catch(() => ({}));
+    const cod = j?.error?.code;
+    const erro = cod === 131047 || cod === 131026
+      ? "O cliente não fala com a loja há mais de 24h. Use “Abrir no WhatsApp”."
+      : j?.error?.error_data?.details || j?.error?.message || `HTTP ${r.status}`;
+    return { envio: "erro", erro: String(erro).slice(0, 200) };
+  } catch {
+    return { envio: "erro", erro: "Sem conexão com o WhatsApp." };
+  }
+}

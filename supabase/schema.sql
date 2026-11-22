@@ -15,3 +15,12 @@ alter table public.pedidos enable row level security;
 -- Projetos novos do Supabase não dão acesso automático: libera para o servidor do site.
 grant select, insert, update, delete on public.pedidos to service_role;
 grant usage, select on sequence public.pedidos_numero_seq to service_role;
+
+-- Configurações editadas pelo painel (cardápio e taxas).
+create table if not exists public.config (
+  id            text primary key,
+  dados         jsonb not null,
+  atualizado_em timestamptz not null default now()
+);
+alter table public.config enable row level security;
+grant select, insert, update, delete on public.config to service_role;

@@ -12,6 +12,8 @@ export type Produto = {
   v: Variante[];
   lim?: boolean; // quantidade limitada
   dest?: string; // selo nos destaques
+  esgotado?: boolean; // aparece, mas não dá para pedir
+  oculto?: boolean; // some do cardápio
 };
 
 export const CATEGORIAS = [

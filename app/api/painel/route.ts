@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { db, modoBanco } from "@/lib/banco";
 import { entrar, logado, senhaConfere } from "@/lib/painel-auth";
+import { whatsappLigado } from "@/lib/whatsapp";
 
 // GET: lista de pedidos do painel. POST: login com a senha.
 export async function GET() {
   if (!(await logado())) return NextResponse.json({ erro: "Entre com a senha do painel." }, { status: 401 });
-  return NextResponse.json({ pedidos: await db().listar(), banco: modoBanco() }, { headers: { "cache-control": "no-store" } });
+  return NextResponse.json({ pedidos: await db().listar(), banco: modoBanco(), whatsapp: whatsappLigado() }, { headers: { "cache-control": "no-store" } });
 }
 
 export async function POST(req: Request) {

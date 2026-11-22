@@ -1,10 +1,6 @@
 import "server-only";
 import type { Endereco } from "./regras";
-
-// Taxa = base + R$/km, com mínimo. Ajuste pelo .env.local depois de simular corridas reais no Uber/99.
-const BASE = Number(process.env.TAXA_BASE ?? 8);
-const POR_KM = Number(process.env.TAXA_POR_KM ?? 0.95);
-const MINIMO = Number(process.env.TAXA_MINIMO ?? 12);
+import type { ConfigTaxa } from "./config";
 
 // Distância aproximada (km, de carro) a partir de Senador Camará. Usada quando não há chave do Google Maps
 // ou quando o Google não encontra o endereço.
@@ -17,14 +13,18 @@ export const KM_BAIRRO: Record<string, number> = {
 };
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+const meio = (v: number) => Math.ceil(v * 2) / 2;
 
-export function precoPorKm(km: number) {
-  return Math.max(MINIMO, Math.ceil((BASE + POR_KM * km) * 2) / 2);
+// Taxa = (base + R$/km, com mínimo) ajustada pelo % do dia de entrega. Arredonda para cima em R$ 0,50.
+export function precoPorKm(km: number, t: ConfigTaxa, dia?: string) {
+  const bruto = Math.max(t.minimo, t.base + t.porKm * km);
+  const ajuste = dia ? t.ajusteDia[dia] ?? 0 : 0;
+  return meio(bruto * (1 + ajuste / 100));
 }
 
-export type Estimativa = { km: number; valor: number; fonte: "google" | "bairro" } | null;
+export type Distancia = { km: number; fonte: "google" | "bairro" } | null;
 
-export async function estimarTaxa(e: Partial<Endereco>): Promise<Estimativa> {
+export async function distancia(e: Partial<Endereco>): Promise<Distancia> {
   const key = process.env.GOOGLE_MAPS_KEY, origem = process.env.ORIGEM_ENDERECO;
   if (key && origem && e.rua && e.numero) {
     try {
@@ -34,16 +34,16 @@ export async function estimarTaxa(e: Partial<Endereco>): Promise<Estimativa> {
       const r = await fetch(u, { cache: "no-store" });
       const j = await r.json();
       const el = j?.rows?.[0]?.elements?.[0];
-      if (el?.status === "OK") {
-        const km = Math.round((el.distance.value / 1000) * 10) / 10;
-        return { km, valor: precoPorKm(km), fonte: "google" };
-      }
+      if (el?.status === "OK") return { km: Math.round((el.distance.value / 1000) * 10) / 10, fonte: "google" };
     } catch {
       /* cai para a tabela de bairros */
     }
   }
   const k = Object.keys(KM_BAIRRO).find((b) => norm(b) === norm(e.bairro ?? ""));
-  if (!k) return null;
-  const km = KM_BAIRRO[k];
-  return { km, valor: precoPorKm(km), fonte: "bairro" };
+  return k ? { km: KM_BAIRRO[k], fonte: "bairro" } : null;
+}
+
+export async function estimarTaxa(e: Partial<Endereco>, t: ConfigTaxa, dia?: string) {
+  const d = await distancia(e);
+  return d ? { km: d.km, valor: precoPorKm(d.km, t, dia), fonte: d.fonte } : null;
 }

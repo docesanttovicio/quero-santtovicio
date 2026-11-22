@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { porId } from "@/lib/catalogo";
 import { DIAS, FAIXAS, pedidosAbertos, round2, type ItemPedido, type Pedido } from "@/lib/regras";
 import { estimarTaxa } from "@/lib/taxa";
+import { lerConfig } from "@/lib/config";
 import { db } from "@/lib/banco";
 import { avisarLoja } from "@/lib/avisos";
 import { notificarEtapa } from "@/lib/whatsapp";
@@ -14,12 +14,15 @@ export async function POST(req: Request) {
   let b: Record<string, unknown>;
   try { b = await req.json(); } catch { return NextResponse.json({ erro: "Pedido inválido." }, { status: 400 }); }
 
-  // Itens: preço sempre do catálogo do servidor
+  // Itens: preço sempre do cardápio salvo no servidor (o mesmo que o painel edita)
+  const cfg = await lerConfig();
+  const porId = (id: string) => cfg.produtos.find((x) => x.id === id && !x.oculto);
   const brutos = Array.isArray(b.itens) ? b.itens.slice(0, 50) : [];
   const itens: ItemPedido[] = [];
   for (const it of brutos as Record<string, unknown>[]) {
     const p = porId(txt(it.produtoId, 40)), vi = Number(it.vi), qtd = Math.floor(Number(it.qtd));
     if (!p || !p.v[vi] || !(qtd >= 1 && qtd <= 50)) return NextResponse.json({ erro: "Um item da sacola não existe mais. Atualize a página." }, { status: 400 });
+    if (p.esgotado) return NextResponse.json({ erro: `${p.nome} esgotou. Tire da sacola para continuar.` }, { status: 400 });
     itens.push({ produtoId: p.id, vi, nome: p.nome, variante: p.v[vi].n, preco: p.v[vi].p, qtd, obs: txt(it.obs, 140) });
   }
   if (!itens.length) return NextResponse.json({ erro: "Sua sacola está vazia." }, { status: 400 });
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
   if (b.aceite !== true) faltam.push("o aceite das condições de pagamento");
   if (faltam.length) return NextResponse.json({ erro: "Falta preencher " + faltam.join(", ").replace(/, ([^,]*)$/, " e $1") + "." }, { status: 400 });
 
-  const est = endereco ? await estimarTaxa(endereco) : null;
+  const est = endereco ? await estimarTaxa(endereco, cfg.taxa, dia) : null;
   const subtotal = round2(itens.reduce((a, i) => a + i.preco * i.qtd, 0));
 
   const base: Omit<Pedido, "codigo"> = {
