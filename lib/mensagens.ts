@@ -21,6 +21,8 @@ export const MODELOS = {
     "Pagamento recebido, {{1}}! Sua encomenda {{2}} saiu para entrega e chega em breve.",
   sv_chave_pix:
     "Chave Pix da Santto Vício:\n\n{{1}}\n\nToque e segure na chave para copiar. Depois de pagar, mande o comprovante aqui.",
+  sv_cancelado:
+    "Oi, {{1}}. Sua encomenda {{2}} foi cancelada. Motivo: {{3}}.\n\nSe você já pagou algum valor, vamos combinar a devolução por aqui. Qualquer dúvida, é só responder esta mensagem.",
   sv_concluido:
     "Obrigado por escolher a Santto Vício, {{1}}! Esperamos que sua encomenda {{2}} faça sucesso na ceia. Feliz Natal!",
 } as const;
@@ -56,10 +58,17 @@ export function mensagem(p: Pedido): Mensagem {
     sv_pronta_retirada: [n, p.codigo, BRL(restante(p))],
     sv_saiu_entrega: [n, p.codigo],
     sv_chave_pix: [process.env.PIX_CHAVE ?? ""],
+    sv_cancelado: [n, p.codigo, p.cancelado?.motivo || "cancelado pela loja"],
     sv_concluido: [n, p.codigo],
   };
   const ps = params[modelo].map(limpo);
   return { modelo, params: ps, texto: preencher(modelo, ps) };
+}
+
+// Aviso de cancelamento (usa o motivo salvo em p.cancelado).
+export function mensagemCancelamento(p: Pedido): Mensagem {
+  const params = [p.nome.split(" ")[0], p.codigo, (p.cancelado?.motivo || "cancelado pela loja").replace(/\s+/g, " ").replace(/[.\s]+$/, "")];
+  return { modelo: "sv_cancelado", params, texto: preencher("sv_cancelado", params) };
 }
 
 // Segunda mensagem, só com a chave Pix, logo depois das mensagens que pedem pagamento.

@@ -8,7 +8,7 @@ export default function Producao({ pedidos }: { pedidos: Pedido[] }) {
   const [dia, setDia] = useState(DIAS[0].id);
   const [semSinal, setSemSinal] = useState(false);
 
-  const doDia = useMemo(() => pedidos.filter((p) => (dia === "todos" || p.dia === dia) && (semSinal ? true : p.etapa >= 1)), [pedidos, dia, semSinal]);
+  const doDia = useMemo(() => pedidos.filter((p) => !p.cancelado && (dia === "todos" || p.dia === dia) && (semSinal ? true : p.etapa >= 1)), [pedidos, dia, semSinal]);
   const linhas = useMemo(() => {
     const m = new Map<string, { nome: string; variante: string; total: number; faixa: Record<string, number> }>();
     for (const p of doDia) for (const i of p.itens) {
@@ -19,7 +19,7 @@ export default function Producao({ pedidos }: { pedidos: Pedido[] }) {
     return [...m.values()].sort((a, b) => a.nome.localeCompare(b.nome) || a.variante.localeCompare(b.variante));
   }, [doDia]);
   const obs = doDia.flatMap((p) => p.itens.filter((i) => i.obs).map((i) => ({ p, i })));
-  const pendentes = pedidos.filter((p) => (dia === "todos" || p.dia === dia) && p.etapa === 0).length;
+  const pendentes = pedidos.filter((p) => !p.cancelado && (dia === "todos" || p.dia === dia) && p.etapa === 0).length;
 
   return (
     <>

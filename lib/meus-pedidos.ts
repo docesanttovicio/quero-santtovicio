@@ -36,8 +36,8 @@ export function useMeusPedidos() {
           if (!res.ok) return null;
           const p = (await res.json()) as PedidoPublico;
           const S = etapasDe(p);
-          return { codigo: p.codigo, token: s.token, titulo: S[p.etapa].t, quando: `${nomeDia(p.dia)}, ${nomeFaixa(p.faixa)}`,
-            finalizado: p.etapa >= S.length - 1, novidade: p.historico.length > s.visto, criadoEm: p.criadoEm } as Resumo;
+          return { codigo: p.codigo, token: s.token, titulo: p.cancelado ? "Cancelada" : S[p.etapa].t, quando: `${nomeDia(p.dia)}, ${nomeFaixa(p.faixa)}`,
+            finalizado: !!p.cancelado || p.etapa >= S.length - 1, novidade: p.historico.length > s.visto, criadoEm: p.criadoEm } as Resumo;
         } catch { return null; }
       }));
       if (vivo) setLista(r.filter((x): x is Resumo => !!x));

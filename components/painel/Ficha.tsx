@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BRL, etapasDe, finalizado, nomeDia, nomeFaixa, restante, sinal, type Pedido } from "@/lib/regras";
 import { situacao, type Acao } from "./Dashboard";
+import Cancelar from "./Cancelar";
 
 const RAPIDAS = [
   "Oi! Recebemos seu Pix, obrigado! 💛",
@@ -55,13 +56,14 @@ export default function Ficha({ p, acao, avisar, whatsapp, fechar }: { p: Pedido
           <section>
             <div className="row-acts">
               {p.novo && <button className="btn outline sm" disabled={ocupado} onClick={() => rodar({ acao: "visto" })}>Marcar como visto</button>}
-              {!finalizado(p) && prox && <button className={"btn sm" + (p.etapa === 3 ? " ok" : "")} disabled={ocupado} onClick={avancar}>{prox}</button>}
+              {!p.cancelado && !finalizado(p) && prox && <button className={"btn sm" + (p.etapa === 3 ? " ok" : "")} disabled={ocupado} onClick={avancar}>{prox}</button>}
               {finalizado(p) && <span className="done-badge">✓ Concluído</span>}
               {zap.msg && <a className="btn ok sm" href={zap.msg} target="_blank" rel="noreferrer" onClick={() => setZap((z) => ({ ...z, msg: undefined }))}>Enviar no WhatsApp</a>}
               {!zap.msg && zap.pix && <a className="btn ok sm" href={zap.pix} target="_blank" rel="noreferrer" onClick={() => setZap({})}>Enviar chave Pix</a>}
             </div>
-            {(p.etapa === 0 || (p.modo === "entrega" && p.etapa === 3)) && <p className="aviso-comp">🧾 Antes de confirmar, confira se o comprovante de {BRL(p.etapa === 0 ? sinal(p) : restante(p))} chegou no WhatsApp da loja.</p>}
-            {!finalizado(p) && <p className="small muted" style={{ margin: "8px 0 0" }}>Próxima etapa: {S[p.etapa + 1]?.t}. {whatsapp ? "O cliente recebe o aviso no WhatsApp automaticamente." : "Depois, envie o aviso pelo botão verde."}</p>}
+            {!finalizado(p) && <Cancelar p={p} acao={acao} avisar={avisar} />}
+            {!p.cancelado && (p.etapa === 0 || (p.modo === "entrega" && p.etapa === 3)) && <p className="aviso-comp">🧾 Antes de confirmar, confira se o comprovante de {BRL(p.etapa === 0 ? sinal(p) : restante(p))} chegou no WhatsApp da loja.</p>}
+            {!finalizado(p) && !p.cancelado && <p className="small muted" style={{ margin: "8px 0 0" }}>Próxima etapa: {S[p.etapa + 1]?.t}. {whatsapp ? "O cliente recebe o aviso no WhatsApp automaticamente." : "Depois, envie o aviso pelo botão verde."}</p>}
           </section>
 
           <section>
@@ -101,7 +103,7 @@ export default function Ficha({ p, acao, avisar, whatsapp, fechar }: { p: Pedido
               {p.historico.map((h, i) => (
                 <div key={i}>
                   <div className={"bub" + (h.livre ? " livre" : "")}>{h.mensagem}</div>
-                  <div className="meta"><span>{h.livre ? "Mensagem sua" : h.pix ? "Chave Pix" : etapasDe(p)[h.etapa]?.t}</span>
+                  <div className="meta"><span>{h.cancel ? "Cancelamento" : h.livre ? "Mensagem sua" : h.pix ? "Chave Pix" : etapasDe(p)[h.etapa]?.t}</span>
                     <span style={{ color: h.envio === "enviado" ? "var(--ok)" : h.envio === "erro" ? "#a3172b" : undefined }}>
                       {h.envio === "enviado" ? "✓ enviada" : h.envio === "erro" ? `falhou: ${h.erro ?? ""}` : "manual"} · {new Date(h.em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></div>
                 </div>

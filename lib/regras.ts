@@ -19,7 +19,7 @@ export type Pagamento = "pix" | "cartao";
 
 export type ItemPedido = { produtoId: string; vi: number; nome: string; variante: string; preco: number; qtd: number; obs: string };
 export type Endereco = { cep: string; rua: string; numero: string; complemento: string; bairro: string };
-export type Evento = { etapa: number; em: string; mensagem: string; envio?: "enviado" | "manual" | "erro"; erro?: string; pix?: boolean; livre?: boolean };
+export type Evento = { etapa: number; em: string; mensagem: string; envio?: "enviado" | "manual" | "erro"; erro?: string; pix?: boolean; livre?: boolean; cancel?: boolean };
 
 export type Pedido = {
   codigo: string;
@@ -40,6 +40,7 @@ export type Pedido = {
   etapa: number;
   novo: boolean;
   historico: Evento[];
+  cancelado?: { em: string; motivo: string } | null;
 };
 
 // Visão do cliente: sem token

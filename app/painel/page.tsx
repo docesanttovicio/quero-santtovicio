@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { BRL, etapasDe, finalizado, nomeDia, nomeFaixa, restante, sinal, type Pedido } from "@/lib/regras";
 import Dashboard from "@/components/painel/Dashboard";
 import Entrar from "@/components/painel/Entrar";
+import Cancelar from "@/components/painel/Cancelar";
 
 type Filtro = "ativos" | "todos" | "23" | "24";
 
@@ -74,7 +75,7 @@ export default function Painel() {
 
   if (desktop) return <Dashboard pedidos={pedidos} carregar={carregar} acao={acao} avisar={avisar} toast={toast} banco={banco} whatsapp={zapLigado} novos={novos} som={som} setSom={setSom} />;
 
-  const lista = pedidos.filter((p) => filtro === "todos" ? true : filtro === "ativos" ? !finalizado(p) : p.dia.endsWith(filtro));
+  const lista = pedidos.filter((p) => filtro === "todos" ? true : filtro === "ativos" ? !finalizado(p) && !p.cancelado : p.dia.endsWith(filtro));
   return (
     <div className="app panel">
       <div className="top pad" style={{ background: "#f6ece6" }}><span /><h2>Painel da loja</h2><button className="link small" onClick={async () => { await fetch("/api/painel", { method: "DELETE" }); location.reload(); }}>Sair</button></div>
@@ -92,7 +93,7 @@ export default function Painel() {
           const s = etapasDe(p)[p.etapa], editTaxa = p.modo === "entrega" && p.etapa < 3;
           return (
             <article className="ocard" key={p.codigo}>
-              <header><b>{p.codigo}</b><span className={"pill" + (p.etapa > 0 && !s.pill ? " ok" : "")}>{s.pill || s.t}</span></header>
+              <header><b>{p.codigo}</b>{p.cancelado ? <span className="pill red">Cancelado</span> : <span className={"pill" + (p.etapa > 0 && !s.pill ? " ok" : "")}>{s.pill || s.t}</span>}</header>
               <ul>{p.itens.map((l, i) => <li key={i}>{l.qtd}× {l.nome} <span className="muted">({l.variante})</span>{l.obs && <><br /><small className="muted">Obs.: {l.obs}</small></>}</li>)}</ul>
               <div className="meta">
                 <span><b style={{ color: "var(--ink)" }}>{p.nome}</b> · {p.whatsapp}</span>
@@ -110,10 +111,10 @@ export default function Painel() {
                 </div>}
                 <div><span>{p.modo === "entrega" ? "Restante + entrega" : "Restante na retirada"}</span><span className="price">{BRL(restante(p))}</span></div>
               </div>
-              {(p.etapa === 0 || (p.modo === "entrega" && p.etapa === 3)) && <p className="aviso-comp">🧾 Antes de confirmar, confira se o comprovante de {BRL(p.etapa === 0 ? sinal(p) : restante(p))} chegou no WhatsApp da loja.</p>}
+              {!p.cancelado && (p.etapa === 0 || (p.modo === "entrega" && p.etapa === 3)) && <p className="aviso-comp">🧾 Antes de confirmar, confira se o comprovante de {BRL(p.etapa === 0 ? sinal(p) : restante(p))} chegou no WhatsApp da loja.</p>}
               <div className="acts">
                 {p.novo && <button className="btn ghost" onClick={() => acao(p, { acao: "visto" })}>Visto</button>}
-                {!finalizado(p) ? <button className={"btn" + (p.etapa === 3 ? " ok" : "")} onClick={() => avancar(p)}>{s.acao}</button> : <span className="done-badge">✓ Concluído</span>}
+                {p.cancelado ? null : !finalizado(p) ? <button className={"btn" + (p.etapa === 3 ? " ok" : "")} onClick={() => avancar(p)}>{s.acao}</button> : <span className="done-badge">✓ Concluído</span>}
                 {zap[p.codigo]?.msg && <a className="btn ok" href={zap[p.codigo].msg} target="_blank" rel="noreferrer" onClick={() => tirar(p.codigo, "msg")}>Enviar no WhatsApp</a>}
                 {!zap[p.codigo]?.msg && zap[p.codigo]?.pix && <a className="btn ok" href={zap[p.codigo].pix} target="_blank" rel="noreferrer" onClick={() => tirar(p.codigo, "pix")}>Enviar chave Pix</a>}
                 {!zap[p.codigo]?.msg && !zap[p.codigo]?.pix && <button className="link small" onClick={async () => {
@@ -122,6 +123,7 @@ export default function Painel() {
                       else setZap((z) => ({ ...z, [p.codigo]: { msg: j.whatsapp, pix: j.whatsappPix ?? undefined } }));
                     }}>Reenviar última mensagem</button>}
               </div>
+              {!finalizado(p) && <Cancelar p={p} acao={acao} avisar={avisar} />}
               {(() => { const u = p.historico[p.historico.length - 1]; if (!u) return null;
                 return <p className="small" style={{ margin: "8px 0 0", color: u.envio === "erro" ? "#a3172b" : u.envio === "enviado" ? "var(--ok)" : "var(--muted)" }}>
                   {u.envio === "enviado" ? "✓ Última mensagem enviada automaticamente no WhatsApp" : u.envio === "erro" ? `WhatsApp automático falhou: ${u.erro ?? "erro desconhecido"}` : "WhatsApp automático desligado: envie pelos botões"}</p>; })()}

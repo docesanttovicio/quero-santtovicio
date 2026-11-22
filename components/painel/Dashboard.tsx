@@ -16,6 +16,7 @@ type Vista = "pedidos" | "producao" | "cardapio" | "taxas";
 
 // Situação do pedido em grupos fáceis de filtrar
 export function situacao(p: Pedido): { k: string; t: string; cor: string } {
+  if (p.cancelado) return { k: "cancelado", t: "Cancelado", cor: "red" };
   if (finalizado(p)) return { k: "concluido", t: p.modo === "retirada" ? "Retirado" : "Entregue", cor: "ok" };
   return [
     { k: "sinal", t: "Aguardando sinal", cor: "" },
@@ -33,7 +34,7 @@ export default function Dashboard(props: Props) {
   const [vista, setVista] = useState<Vista>("pedidos");
   const [sel, setSel] = useState<string | null>(null);
   const atual = pedidos.find((p) => p.codigo === sel) ?? null;
-  const ativos = pedidos.filter((p) => !finalizado(p)).length;
+  const ativos = pedidos.filter((p) => !finalizado(p) && !p.cancelado).length;
 
   const nav: [Vista, string, React.ReactNode?][] = [
     ["pedidos", "Pedidos", props.novos ? <span className="n alert">{props.novos} novo{props.novos > 1 ? "s" : ""}</span> : <span className="n">{ativos}</span>],
@@ -78,7 +79,7 @@ function Pedidos({ pedidos, sel, setSel, novos }: Props & { sel: string | null; 
     const q = busca.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
     return pedidos.filter((p) => {
       const s = situacao(p).k;
-      if (st === "ativos" ? s === "concluido" : st === "novos" ? !p.novo : st !== "todos" && s !== st) return false;
+      if (st === "ativos" ? s === "concluido" || s === "cancelado" : st === "novos" ? !p.novo : st !== "todos" && s !== st) return false;
       if (dia !== "todos" && p.dia !== dia) return false;
       if (modo !== "todos" && p.modo !== modo) return false;
       if (!q) return true;
@@ -88,13 +89,14 @@ function Pedidos({ pedidos, sel, setSel, novos }: Props & { sel: string | null; 
   }, [pedidos, busca, st, dia, modo]);
 
   const k = useMemo(() => {
-    const ab = pedidos.filter((p) => p.etapa >= 1);
+    const validos = pedidos.filter((p) => !p.cancelado);
+    const ab = validos.filter((p) => p.etapa >= 1);
     return {
-      total: pedidos.length, ativos: pedidos.filter((p) => !finalizado(p)).length,
+      total: validos.length, ativos: validos.filter((p) => !finalizado(p)).length,
       vendas: ab.reduce((a, p) => a + p.subtotal, 0),
-      sinaisPend: pedidos.filter((p) => p.etapa === 0),
+      sinaisPend: validos.filter((p) => p.etapa === 0),
       aReceber: ab.filter((p) => !pago(p)).reduce((a, p) => a + restante(p), 0),
-      porDia: DIAS.map((d) => ({ d, n: pedidos.filter((p) => p.dia === d.id && p.etapa >= 1).length })),
+      porDia: DIAS.map((d) => ({ d, n: ab.filter((p) => p.dia === d.id).length })),
     };
   }, [pedidos]);
 
@@ -123,7 +125,7 @@ function Pedidos({ pedidos, sel, setSel, novos }: Props & { sel: string | null; 
       </div>
       <div className="toolbar">
         <input type="search" placeholder="Buscar por nome, código, bairro, produto…" value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar pedidos" />
-        <div className="seg2">{[["ativos", "Em andamento"], ["novos", "Novos"], ["sinal", "Aguardando sinal"], ["producao", "Em produção"], ["pronta", "Prontos"], ["concluido", "Concluídos"], ["todos", "Todos"]].map(([v, n]) =>
+        <div className="seg2">{[["ativos", "Em andamento"], ["novos", "Novos"], ["sinal", "Aguardando sinal"], ["producao", "Em produção"], ["pronta", "Prontos"], ["concluido", "Concluídos"], ["cancelado", "Cancelados"], ["todos", "Todos"]].map(([v, n]) =>
           <button key={v} className={st === v ? "on" : ""} onClick={() => setSt(v)}>{n}</button>)}</div>
         <div className="seg2">{[["todos", "Os dois dias"], ...DIAS.map((d) => [d.id, d.nome.split(", ")[1]])].map(([v, n]) =>
           <button key={v} className={dia === v ? "on" : ""} onClick={() => setDia(v)}>{n}</button>)}</div>

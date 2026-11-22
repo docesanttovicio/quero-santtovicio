@@ -419,3 +419,15 @@ input,textarea,select{font-size:16px!important}
 .pcard small{color:var(--muted);font-size:13px;grid-column:1}
 .pcard .seta{grid-row:1 / span 3;grid-column:2;color:var(--wine);font-size:22px}
 .pcard .dot-novo{top:12px;right:12px;border-color:#fff}
+/* ---------- Cancelamento ---------- */
+.btn.perigo{background:#a3172b;color:#fff}
+.cancelar-link{color:#a3172b;margin-top:10px}
+.cancelar-box,.cancelado-box{margin-top:12px;border-radius:12px;padding:12px;display:grid;gap:8px;font-size:13px}
+.cancelar-box{background:#fff4f4;border:1px solid #f1c4c4;color:var(--ink)}
+.cancelar-box input{border:1px solid #f1c4c4;border-radius:8px;padding:9px 10px;font:inherit;background:#fff}
+.cancelar-box .chips button.on{background:#a3172b;color:#fff;border-color:#a3172b}
+.cancelado-box{background:#fbe1e1;color:#7a1020}
+.cancelado-box b{font-size:14px}
+.cancelado-box .link{color:#7a1020;justify-self:start}
+.track-cancel{background:#fbe1e1;color:#7a1020;border-radius:14px;padding:14px;display:grid;gap:4px;font-size:14px}
+.track-cancel b{font-family:var(--f-display);font-weight:400;font-size:20px}

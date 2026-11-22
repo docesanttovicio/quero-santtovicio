@@ -8,7 +8,7 @@ import { db } from "@/lib/banco";
 // GET mostra a prévia; POST aplica.
 async function calcular(dia: string) {
   const { taxa } = await lerConfig();
-  const alvo = (await db().listar()).filter((p) => p.modo === "entrega" && p.dia === dia && p.etapa < 3 && p.km != null);
+  const alvo = (await db().listar()).filter((p) => !p.cancelado && p.modo === "entrega" && p.dia === dia && p.etapa < 3 && p.km != null);
   return alvo.map((p) => ({ p, nova: precoPorKm(p.km!, taxa, dia) })).filter((x) => x.nova !== x.p.taxa);
 }
 

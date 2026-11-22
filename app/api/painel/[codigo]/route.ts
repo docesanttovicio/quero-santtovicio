@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/banco";
 import { logado } from "@/lib/painel-auth";
 import { etapasDe, finalizado, round2, type Pedido } from "@/lib/regras";
-import { linkWhatsApp, mensagem, mensagemPix } from "@/lib/mensagens";
+import { linkWhatsApp, mensagem, mensagemCancelamento, mensagemPix } from "@/lib/mensagens";
 import { enviarTexto, enviarWhatsApp, notificarEtapa } from "@/lib/whatsapp";
 
 // Mensagens da etapa atual (a principal e, se houver, a da chave Pix), mais recentes no fim do histórico.
-const daEtapa = (p: Pedido) => p.historico.filter((h) => h.etapa === p.etapa && !h.livre);
+const daEtapa = (p: Pedido) => p.historico.filter((h) => h.etapa === p.etapa && !h.livre && !h.cancel);
 
 // Ações da loja sobre um pedido: visto, taxa, avançar etapa (envia o WhatsApp sozinho) e reenviar.
 export async function POST(req: Request, { params }: { params: Promise<{ codigo: string }> }) {
@@ -23,7 +23,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ codigo:
     if (p.modo !== "entrega" || p.etapa >= 3) return NextResponse.json({ erro: "A taxa só pode mudar antes de cobrar o restante." }, { status: 400 });
     if (!(v >= 0 && v < 1000)) return NextResponse.json({ erro: "Valor de taxa inválido." }, { status: 400 });
     p.taxa = round2(v);
+  } else if (b.acao === "cancelar") {
+    if (p.cancelado) return NextResponse.json({ erro: "Esse pedido já está cancelado." }, { status: 400 });
+    const motivo = typeof b.motivo === "string" ? b.motivo.trim().slice(0, 140) : "";
+    p.cancelado = { em: new Date().toISOString(), motivo: motivo || "cancelado pela loja" };
+    p.novo = false;
+    const m = mensagemCancelamento(p);
+    p.historico.push({ etapa: p.etapa, em: p.cancelado.em, mensagem: m.texto, cancel: true, ...(await enviarWhatsApp(p.whatsapp, m)) });
+  } else if (b.acao === "reativar") {
+    if (!p.cancelado) return NextResponse.json({ erro: "Esse pedido não está cancelado." }, { status: 400 });
+    p.cancelado = null;
   } else if (b.acao === "avancar") {
+    if (p.cancelado) return NextResponse.json({ erro: "Pedido cancelado. Reative antes de avançar." }, { status: 400 });
     if (finalizado(p)) return NextResponse.json({ erro: "Esse pedido já foi concluído." }, { status: 400 });
     if (Number(b.de) !== p.etapa) return NextResponse.json({ erro: "Outra pessoa já atualizou esse pedido. Recarregue." }, { status: 409 });
     if (p.modo === "entrega" && p.etapa === 2 && !(p.taxa > 0)) return NextResponse.json({ erro: "Defina a taxa de entrega antes de cobrar o restante." }, { status: 400 });
@@ -51,6 +62,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ codigo:
   }
   await db().salvar(p);
 
+  if (b.acao === "cancelar") {
+    const u = p.historico[p.historico.length - 1];
+    return NextResponse.json({ pedido: p, whatsapp: linkWhatsApp(p, u.mensagem), whatsappPix: null, envio: u.envio ?? "manual", erro: u.erro });
+  }
   const msgs = daEtapa(p), principal = msgs.find((h) => !h.pix), pix = msgs.find((h) => h.pix);
   const envio = msgs.some((h) => h.envio === "erro") ? "erro" : msgs.length && msgs.every((h) => h.envio === "enviado") ? "enviado" : "manual";
   return NextResponse.json({

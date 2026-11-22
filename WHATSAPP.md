@@ -15,7 +15,7 @@ Enquanto não estiver ligado, o painel continua com o botão **Enviar no WhatsAp
 
 ## 2. Criar os modelos de mensagem
 
-No **WhatsApp Manager → Modelos de mensagem → Criar modelo**, crie os 9 abaixo com:
+No **WhatsApp Manager → Modelos de mensagem → Criar modelo**, crie os 10 abaixo com:
 
 - **Categoria:** Utilidade
 - **Nome:** exatamente como está aqui (minúsculas, com `_`)
@@ -104,6 +104,16 @@ Toque e segure na chave para copiar. Depois de pagar, mande o comprovante aqui.
 ```
 
 Exemplos: {{1}} = doce.santtovicio@gmail.com
+
+### `sv_cancelado`
+
+```text
+Oi, {{1}}. Sua encomenda {{2}} foi cancelada. Motivo: {{3}}.
+
+Se você já pagou algum valor, vamos combinar a devolução por aqui. Qualquer dúvida, é só responder esta mensagem.
+```
+
+Exemplos: {{1}} = Mariana · {{2}} = SV-0001 · {{3}} = Cliente desistiu
 
 ### `sv_concluido`
 
