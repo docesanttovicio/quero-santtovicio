@@ -5,6 +5,7 @@ import { BRL, DIAS, finalizado, nomeDia, nomeFaixa, restante, sinal, type Pedido
 import Producao from "./Producao";
 import Cardapio from "./Cardapio";
 import Taxas from "./Taxas";
+import Whatsapp from "./Whatsapp";
 import Ficha from "./Ficha";
 
 export type Acao = (p: Pedido, body: Record<string, unknown>) => Promise<{ pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro"; erro?: string } | null>;
@@ -12,7 +13,7 @@ type Props = {
   pedidos: Pedido[]; carregar: () => void; acao: Acao; avisar: (m: string) => void; toast: string;
   banco: string; whatsapp: boolean; novos: number; som: boolean; setSom: (v: boolean) => void;
 };
-type Vista = "pedidos" | "producao" | "cardapio" | "taxas";
+type Vista = "pedidos" | "producao" | "cardapio" | "taxas" | "whatsapp";
 
 // Situação do pedido em grupos fáceis de filtrar
 export function situacao(p: Pedido): { k: string; t: string; cor: string } {
@@ -41,6 +42,7 @@ export default function Dashboard(props: Props) {
     ["producao", "Produção"],
     ["cardapio", "Cardápio"],
     ["taxas", "Taxas de entrega"],
+    ["whatsapp", "WhatsApp", <span key="z" className={"n" + (props.whatsapp ? "" : " off")}>{props.whatsapp ? "on" : "off"}</span>],
   ];
   return (
     <div className="dash">
@@ -61,6 +63,7 @@ export default function Dashboard(props: Props) {
         {vista === "producao" && <Producao pedidos={pedidos} />}
         {vista === "cardapio" && <Cardapio avisar={props.avisar} />}
         {vista === "taxas" && <Taxas avisar={props.avisar} recarregar={props.carregar} />}
+        {vista === "whatsapp" && <Whatsapp avisar={props.avisar} />}
       </main>
       {atual && <Ficha p={atual} acao={props.acao} avisar={props.avisar} whatsapp={props.whatsapp} fechar={() => setSel(null)} />}
       {props.toast && <div className="toast" role="status">{props.toast}</div>}

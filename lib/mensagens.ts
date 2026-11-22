@@ -28,6 +28,21 @@ export const MODELOS = {
 } as const;
 
 export type NomeModelo = keyof typeof MODELOS;
+
+// Exemplos que a Meta pede para aprovar cada modelo (um por {{n}}, na ordem).
+const ACOMP = "https://quero.santtovicio.com.br/pedido/SV-0001";
+export const EXEMPLOS: Record<NomeModelo, string[]> = {
+  sv_pedido_recebido: ["Mariana", "SV-0001", "Quinta, 24/12, 13h às 16h", "R$ 90,00", "Segue a nossa chave Pix logo abaixo.", ACOMP],
+  sv_sinal_recebido: ["Mariana", "SV-0001", "Quinta, 24/12, 13h às 16h"],
+  sv_retirada_confirmada: ["Mariana", "SV-0001", "Quinta, 24/12, 13h às 16h (retirada)"],
+  sv_em_producao: ["Mariana", "SV-0001"],
+  sv_pronta_pagamento: ["Mariana", "SV-0001", "R$ 90,00", "R$ 52,00", "R$ 142,00", "Segue a nossa chave Pix logo abaixo."],
+  sv_pronta_retirada: ["Mariana", "SV-0001", "R$ 90,00"],
+  sv_saiu_entrega: ["Mariana", "SV-0001"],
+  sv_chave_pix: ["doce.santtovicio@gmail.com"],
+  sv_cancelado: ["Mariana", "SV-0001", "Cliente desistiu"],
+  sv_concluido: ["Mariana", "SV-0001"],
+};
 export type Mensagem = { modelo: NomeModelo; params: string[]; texto: string };
 
 const ENTREGA: NomeModelo[] = ["sv_pedido_recebido", "sv_sinal_recebido", "sv_em_producao", "sv_pronta_pagamento", "sv_saiu_entrega", "sv_concluido"];
