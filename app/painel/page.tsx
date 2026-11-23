@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BRL, etapasDe, finalizado, nomeDia, nomeFaixa, restante, sinal, type Pedido } from "@/lib/regras";
 import Dashboard from "@/components/painel/Dashboard";
 import Entrar from "@/components/painel/Entrar";
 import Cancelar from "@/components/painel/Cancelar";
 import Acessos from "@/components/painel/Acessos";
 import { marcarEquipe } from "@/lib/rastro";
+import { useSom } from "@/lib/som";
+import BotaoSom from "@/components/painel/BotaoSom";
 
 type Filtro = "ativos" | "todos" | "23" | "24";
 
@@ -19,11 +21,10 @@ export default function Painel() {
   useEffect(() => { const m = matchMedia("(min-width: 1024px)"); const f = () => setDesktop(m.matches); f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
   const [filtro, setFiltro] = useState<Filtro>("ativos");
   const [verAcessos, setVerAcessos] = useState(false);
-  const [som, setSom] = useState(false);
+  const som = useSom();
   const [toast, setToast] = useState("");
   const [zap, setZap] = useState<Record<string, { msg?: string; pix?: string }>>({});
   const tirar = (cod: string, k: "msg" | "pix") => setZap((z) => ({ ...z, [cod]: { ...z[cod], [k]: undefined } }));
-  const audio = useRef<AudioContext | null>(null);
 
   const carregar = useCallback(async () => {
     const r = await fetch("/api/painel", { cache: "no-store" }).catch(() => null);
@@ -36,15 +37,9 @@ export default function Painel() {
   // alarme: toca enquanto houver pedido novo não visto
   const novos = pedidos.filter((p) => p.novo).length;
   useEffect(() => {
-    if (!novos || !som) return;
-    const beep = () => {
-      try {
-        const ctx = (audio.current ??= new AudioContext()), t = ctx.currentTime;
-        [0, 0.18].forEach((d) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.25, t + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.15); o.connect(g).connect(ctx.destination); o.start(t + d); o.stop(t + d + 0.16); });
-      } catch {}
-    };
-    beep(); const i = setInterval(beep, 2500); return () => clearInterval(i);
-  }, [novos, som]);
+    if (!novos || !som.ligado || !som.liberado) return;
+    som.bipe(); const i = setInterval(som.bipe, 2500); return () => clearInterval(i);
+  }, [novos, som.ligado, som.liberado, som.bipe]);
   useEffect(() => { document.title = novos ? `(${novos}) Novo pedido · Painel` : "Painel · Santto Vício"; }, [novos]);
   useEffect(() => { let w: { release(): void } | null = null; (navigator as Navigator & { wakeLock?: { request(t: string): Promise<{ release(): void }> } }).wakeLock?.request("screen").then((x) => (w = x)).catch(() => {}); return () => w?.release(); }, []);
 
@@ -74,16 +69,16 @@ export default function Painel() {
   }
 
   if (estado === "carregando") return <div className="carregando">Carregando…</div>;
-  if (estado === "login") return <Entrar onEntrou={() => { setSom(true); carregar(); }} />;
+  if (estado === "login") return <Entrar onEntrou={carregar} />;
 
-  if (desktop) return <Dashboard pedidos={pedidos} carregar={carregar} acao={acao} avisar={avisar} toast={toast} banco={banco} whatsapp={zapLigado} novos={novos} som={som} setSom={setSom} />;
+  if (desktop) return <Dashboard pedidos={pedidos} carregar={carregar} acao={acao} avisar={avisar} toast={toast} banco={banco} whatsapp={zapLigado} novos={novos} som={som} />;
 
   const lista = pedidos.filter((p) => filtro === "todos" ? true : filtro === "ativos" ? !finalizado(p) && !p.cancelado : p.dia.endsWith(filtro));
   return (
     <div className="app panel">
       <div className="top pad" style={{ background: "#f6ece6" }}><button className="link small" onClick={() => setVerAcessos((v) => !v)}>{verAcessos ? "← Pedidos" : "Acessos"}</button><h2>Painel da loja</h2><button className="link small" onClick={async () => { await fetch("/api/painel", { method: "DELETE" }); location.reload(); }}>Sair</button></div>
       <div className="pad" style={{ paddingBlock: "16px 40px" }}>
-        {!som && <div className="note" style={{ marginBottom: 12 }}>O alarme sonoro precisa de um toque para ser liberado pelo navegador. <button className="link" onClick={() => setSom(true)}>Ativar som</button></div>}
+        <div style={{ marginBottom: 12 }}><BotaoSom som={som} /></div>
         {novos > 0 && <div className="alarm" style={{ marginBottom: 12 }}><div style={{ fontSize: 26 }}>🔔</div>
           <div style={{ flex: 1 }}><b>{novos > 1 ? `${novos} novas encomendas` : "Nova encomenda!"}</b><span style={{ fontSize: 13, opacity: 0.9 }}>Toque em “Visto” no pedido para parar o alarme.</span></div></div>}
         {verAcessos ? <div className="ac-mobile"><Acessos /></div> : <>

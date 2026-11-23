@@ -8,11 +8,13 @@ import Taxas from "./Taxas";
 import Whatsapp from "./Whatsapp";
 import Acessos from "./Acessos";
 import Ficha from "./Ficha";
+import BotaoSom from "./BotaoSom";
+import type { Som } from "@/lib/som";
 
 export type Acao = (p: Pedido, body: Record<string, unknown>) => Promise<{ pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro"; erro?: string } | null>;
 type Props = {
   pedidos: Pedido[]; carregar: () => void; acao: Acao; avisar: (m: string) => void; toast: string;
-  banco: string; whatsapp: boolean; novos: number; som: boolean; setSom: (v: boolean) => void;
+  banco: string; whatsapp: boolean; novos: number; som: Som;
 };
 type Vista = "pedidos" | "producao" | "cardapio" | "taxas" | "whatsapp" | "acessos";
 
@@ -51,9 +53,9 @@ export default function Dashboard(props: Props) {
       <aside className="dash-side">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <div className="dash-brand"><img src="/img/logo.png" alt="" /><div><small>Painel da loja</small><b>Santto Vício</b></div></div>
+        <BotaoSom som={props.som} />
         {nav.map(([k, n, extra]) => <button key={k} className={"dash-nav" + (vista === k ? " on" : "")} onClick={() => setVista(k)}><span>{n}</span>{extra}</button>)}
         <div className="foot">
-          <button onClick={() => props.setSom(!props.som)}>{props.som ? "🔔 Alarme sonoro ligado" : "🔕 Ligar alarme sonoro"}</button>
           <span>WhatsApp automático: {props.whatsapp ? "ligado" : "desligado (envio manual)"}</span>
           {props.banco === "arquivo" && <span>Modo teste (sem banco)</span>}
           <a href="/" target="_blank" rel="noreferrer">Abrir a loja ↗</a>

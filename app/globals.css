@@ -517,3 +517,27 @@ input,textarea,select{font-size:16px!important}
 .ac-mobile .ac-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
 .ac-mobile .cards2{grid-template-columns:1fr}
 .ac-mobile .seg2{flex-wrap:wrap}
+
+/* Botão do alarme sonoro do painel (celular: fundo claro; computador: na barra lateral vinho) */
+.som-btn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;color:var(--ink);cursor:pointer;font:inherit;transition:background .2s,border-color .2s}
+.som-btn:focus-visible{outline:2px solid var(--wine);outline-offset:2px}
+.som-ic{font-size:20px;line-height:1}
+.som-txt{flex:1;min-width:0;display:grid;gap:1px}
+.som-txt b{font-size:14px;font-weight:600}
+.som-txt small{font-size:12px;color:var(--muted);line-height:1.3}
+.som-sw{width:38px;height:22px;border-radius:999px;background:#dcc8bf;position:relative;flex:none;transition:background .2s}
+.som-sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .2s var(--ease)}
+.som-btn.on .som-sw{background:var(--ok)}
+.som-btn.on .som-sw::after{transform:translateX(16px)}
+.som-btn.travado{background:var(--warn-bg);border-color:#f0c98a}
+.som-btn.travado .som-sw{background:#d99a2b}
+.som-btn.travado small{color:#7a4a08;font-weight:500}
+.dash-side .som-btn{background:rgba(255,239,228,.08);border-color:rgba(255,239,228,.16);color:var(--cream);margin-bottom:14px}
+.dash-side .som-btn:hover{background:rgba(255,239,228,.13)}
+.dash-side .som-btn small{color:rgba(255,239,228,.72)}
+.dash-side .som-sw{background:rgba(255,239,228,.28)}
+.dash-side .som-btn.on .som-sw{background:#4caf73}
+.dash-side .som-btn.travado{background:#f0b44c;border-color:#f0b44c;color:#3a2300}
+.dash-side .som-btn.travado small{color:#3a2300}
+.dash-side .som-btn.travado .som-sw{background:rgba(58,35,0,.4)}
+.dash-side .som-btn:focus-visible{outline-color:var(--cream)}
