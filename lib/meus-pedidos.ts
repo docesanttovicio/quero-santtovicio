@@ -13,8 +13,9 @@ export function lerSalvos(): Salvo[] {
 function gravar(l: Salvo[]) { try { localStorage.setItem(CHAVE, JSON.stringify(l.slice(0, 20))); } catch {} }
 
 export function lembrarPedido(codigo: string, token: string) {
+  // Mesmo código com outro token = pedido antigo (de antes de zerar a base); troca pelo novo.
   const l = lerSalvos();
-  if (!l.some((x) => x.codigo === codigo)) gravar([{ codigo, token, visto: 0 }, ...l]);
+  if (!l.some((x) => x.codigo === codigo && x.token === token)) gravar([{ codigo, token, visto: 0 }, ...l.filter((x) => x.codigo !== codigo)]);
 }
 // "visto" = quantas mensagens o cliente já viu; tudo que passar disso é novidade.
 export function marcarVisto(codigo: string, n: number) {
