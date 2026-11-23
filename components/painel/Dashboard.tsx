@@ -6,6 +6,7 @@ import Producao from "./Producao";
 import Cardapio from "./Cardapio";
 import Taxas from "./Taxas";
 import Whatsapp from "./Whatsapp";
+import Acessos from "./Acessos";
 import Ficha from "./Ficha";
 
 export type Acao = (p: Pedido, body: Record<string, unknown>) => Promise<{ pedido: Pedido; whatsapp: string; whatsappPix: string | null; envio: "enviado" | "manual" | "erro"; erro?: string } | null>;
@@ -13,7 +14,7 @@ type Props = {
   pedidos: Pedido[]; carregar: () => void; acao: Acao; avisar: (m: string) => void; toast: string;
   banco: string; whatsapp: boolean; novos: number; som: boolean; setSom: (v: boolean) => void;
 };
-type Vista = "pedidos" | "producao" | "cardapio" | "taxas" | "whatsapp";
+type Vista = "pedidos" | "producao" | "cardapio" | "taxas" | "whatsapp" | "acessos";
 
 // Situação do pedido em grupos fáceis de filtrar
 export function situacao(p: Pedido): { k: string; t: string; cor: string } {
@@ -40,6 +41,7 @@ export default function Dashboard(props: Props) {
   const nav: [Vista, string, React.ReactNode?][] = [
     ["pedidos", "Pedidos", props.novos ? <span className="n alert">{props.novos} novo{props.novos > 1 ? "s" : ""}</span> : <span className="n">{ativos}</span>],
     ["producao", "Produção"],
+    ["acessos", "Acessos"],
     ["cardapio", "Cardápio"],
     ["taxas", "Taxas de entrega"],
     ["whatsapp", "WhatsApp", <span key="z" className={"n" + (props.whatsapp ? "" : " off")}>{props.whatsapp ? "on" : "off"}</span>],
@@ -64,6 +66,7 @@ export default function Dashboard(props: Props) {
         {vista === "cardapio" && <Cardapio avisar={props.avisar} />}
         {vista === "taxas" && <Taxas avisar={props.avisar} recarregar={props.carregar} />}
         {vista === "whatsapp" && <Whatsapp avisar={props.avisar} />}
+        {vista === "acessos" && <Acessos />}
       </main>
       {atual && <Ficha p={atual} acao={props.acao} avisar={props.avisar} whatsapp={props.whatsapp} fechar={() => setSel(null)} />}
       {props.toast && <div className="toast" role="status">{props.toast}</div>}

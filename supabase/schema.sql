@@ -24,3 +24,18 @@ create table if not exists public.config (
 );
 alter table public.config enable row level security;
 grant select, insert, update, delete on public.config to service_role;
+
+-- Acessos da loja (aba "Acessos" do painel). Anônimo: só um código aleatório por aparelho.
+create table if not exists public.acessos (
+  id          bigserial primary key,
+  em          timestamptz not null default now(),
+  visitante   text not null,
+  tipo        text not null,   -- visita | produto | sacola | dados
+  produto     text,
+  origem      text,
+  dispositivo text
+);
+create index if not exists acessos_em_idx on public.acessos (em);
+alter table public.acessos enable row level security;
+grant select, insert, delete on public.acessos to service_role;
+grant usage, select on sequence public.acessos_id_seq to service_role;

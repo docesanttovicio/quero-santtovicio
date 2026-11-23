@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CATEGORIAS, SUGESTOES, menorPreco, type Produto } from "@/lib/catalogo";
 import { BRL, DIAS, FAIXAS, PEDIDOS_ATE, SINAL } from "@/lib/regras";
 import { lembrarPedido, useMeusPedidos } from "@/lib/meus-pedidos";
+import { rastrear } from "@/lib/rastro";
 
 type Linha = { produtoId: string; vi: number; qtd: number; obs: string };
 type Vista = "loja" | "sacola" | "dados";
@@ -43,6 +44,11 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
   }, []);
   useEffect(() => { try { localStorage.setItem(CHAVE, JSON.stringify(sacola)); } catch {} }, [sacola]);
 
+  // acessos (anônimos) para a aba "Acessos" do painel
+  useEffect(() => { rastrear("visita"); }, []);
+  useEffect(() => { if (item) rastrear("produto", item.id); }, [item]);
+  useEffect(() => { if (vista === "dados") rastrear("dados"); }, [vista]);
+
   const linhas = useMemo(() => sacola.map((l) => { const p = porId(l.produtoId)!; return { ...l, p, v: p.v[l.vi] }; }), [sacola]);
   const subtotal = linhas.reduce((a, l) => a + l.v.p * l.qtd, 0);
   const qtdTotal = linhas.reduce((a, l) => a + l.qtd, 0);
@@ -61,6 +67,7 @@ export default function Loja({ produtos }: { produtos: Produto[] }) {
   useEffect(() => { if (vista !== "loja" && !sacola.length) ir("loja"); }, [sacola.length, vista, ir]);
 
   function adicionar(produtoId: string, vi: number, qtd: number, obs = "", de?: HTMLImageElement | null) {
+    rastrear("sacola", produtoId);
     setSacola((s) => {
       const i = s.findIndex((l) => l.produtoId === produtoId && l.vi === vi && l.obs === obs);
       if (i >= 0) return s.map((l, k) => (k === i ? { ...l, qtd: l.qtd + qtd } : l));

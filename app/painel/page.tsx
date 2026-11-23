@@ -5,6 +5,8 @@ import { BRL, etapasDe, finalizado, nomeDia, nomeFaixa, restante, sinal, type Pe
 import Dashboard from "@/components/painel/Dashboard";
 import Entrar from "@/components/painel/Entrar";
 import Cancelar from "@/components/painel/Cancelar";
+import Acessos from "@/components/painel/Acessos";
+import { marcarEquipe } from "@/lib/rastro";
 
 type Filtro = "ativos" | "todos" | "23" | "24";
 
@@ -16,6 +18,7 @@ export default function Painel() {
   const [desktop, setDesktop] = useState(false);
   useEffect(() => { const m = matchMedia("(min-width: 1024px)"); const f = () => setDesktop(m.matches); f(); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
   const [filtro, setFiltro] = useState<Filtro>("ativos");
+  const [verAcessos, setVerAcessos] = useState(false);
   const [som, setSom] = useState(false);
   const [toast, setToast] = useState("");
   const [zap, setZap] = useState<Record<string, { msg?: string; pix?: string }>>({});
@@ -26,7 +29,7 @@ export default function Painel() {
     const r = await fetch("/api/painel", { cache: "no-store" }).catch(() => null);
     if (!r) return;
     if (r.status === 401) return setEstado("login");
-    const j = await r.json(); setPedidos(j.pedidos); setBanco(j.banco); setZapLigado(!!j.whatsapp); setEstado("ok");
+    const j = await r.json(); setPedidos(j.pedidos); setBanco(j.banco); setZapLigado(!!j.whatsapp); setEstado("ok"); marcarEquipe();
   }, []);
   useEffect(() => { carregar(); const i = setInterval(carregar, 8000); return () => clearInterval(i); }, [carregar]);
 
@@ -78,11 +81,12 @@ export default function Painel() {
   const lista = pedidos.filter((p) => filtro === "todos" ? true : filtro === "ativos" ? !finalizado(p) && !p.cancelado : p.dia.endsWith(filtro));
   return (
     <div className="app panel">
-      <div className="top pad" style={{ background: "#f6ece6" }}><span /><h2>Painel da loja</h2><button className="link small" onClick={async () => { await fetch("/api/painel", { method: "DELETE" }); location.reload(); }}>Sair</button></div>
+      <div className="top pad" style={{ background: "#f6ece6" }}><button className="link small" onClick={() => setVerAcessos((v) => !v)}>{verAcessos ? "← Pedidos" : "Acessos"}</button><h2>Painel da loja</h2><button className="link small" onClick={async () => { await fetch("/api/painel", { method: "DELETE" }); location.reload(); }}>Sair</button></div>
       <div className="pad" style={{ paddingBlock: "16px 40px" }}>
         {!som && <div className="note" style={{ marginBottom: 12 }}>O alarme sonoro precisa de um toque para ser liberado pelo navegador. <button className="link" onClick={() => setSom(true)}>Ativar som</button></div>}
         {novos > 0 && <div className="alarm" style={{ marginBottom: 12 }}><div style={{ fontSize: 26 }}>🔔</div>
           <div style={{ flex: 1 }}><b>{novos > 1 ? `${novos} novas encomendas` : "Nova encomenda!"}</b><span style={{ fontSize: 13, opacity: 0.9 }}>Toque em “Visto” no pedido para parar o alarme.</span></div></div>}
+        {verAcessos ? <div className="ac-mobile"><Acessos /></div> : <>
         <div className="panel-tools">
           <div className="filters">{([["ativos", "Em andamento"], ["23", "Dia 23"], ["24", "Dia 24"], ["todos", "Todos"]] as [Filtro, string][]).map(([k, n]) =>
             <button key={k} className={filtro === k ? "on" : ""} onClick={() => setFiltro(k)}>{n}</button>)}</div>
@@ -130,6 +134,7 @@ export default function Painel() {
             </article>
           );
         })}
+        </>}
       </div>
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
