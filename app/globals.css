@@ -14,7 +14,7 @@ body{margin:0;font-family:var(--f-body);color:var(--ink);font-size:15px;line-hei
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--wine)}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible,label:focus-within{outline:2px solid var(--wine-soft);outline-offset:2px}
-.app{max-width:480px;margin:0 auto;background:var(--paper);min-height:100vh;position:relative;padding-bottom:96px;overflow-x:clip}
+.app{max-width:480px;margin:0 auto;background:var(--paper);min-height:100vh;position:relative;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));overflow-x:clip}
 .pad{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
 .price{font-family:var(--f-display);font-variant-numeric:tabular-nums}
@@ -118,10 +118,11 @@ h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance
 .rules dd{margin:0;color:var(--muted)}
 
 /* Barra inferior */
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none}
+/* O fundo cobre também a faixa do iPhone abaixo dos botões (antes ela ficava transparente e a foto aparecia por baixo). */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;pointer-events:none}
 .bar.show{animation:barIn .34s var(--ease) both}
 @keyframes barIn{from{transform:translateY(100%)}to{transform:none}}
-.bar-in{max-width:480px;margin:0 auto;background:var(--paper);border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;padding-block:12px;pointer-events:auto}
+.bar-in{max-width:480px;margin:0 auto;background:var(--paper);border-top:1px solid var(--line);display:flex;gap:12px;align-items:center;padding-block:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));box-shadow:0 60px 0 var(--paper);pointer-events:auto}
 .bar .sum{flex:1;min-width:0;font-size:12px;color:var(--muted)}
 .bar .sum b{display:block;font-family:var(--f-display);font-weight:400;color:var(--ink);font-size:19px}
 .btn{border:0;border-radius:10px;padding:14px 20px;font-weight:600;font-size:15px;background:var(--wine);color:var(--cream);display:inline-flex;justify-content:space-between;gap:16px;align-items:center;transition:transform .12s,background .2s}
