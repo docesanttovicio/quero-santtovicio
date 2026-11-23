@@ -69,6 +69,7 @@ export function origemDe(utm: string, ref: string, host: string): string {
   if (/facebook|fb\b|fb\.com/.test(t)) return "Facebook";
   if (/tiktok/.test(t)) return "TikTok";
   if (/google/.test(t)) return "Google";
+  if (/^qr/.test(u)) return "QR code";
   if (u) return u.slice(0, 30);
   if (r) return "Outros sites";
   return "Direto ou link";
