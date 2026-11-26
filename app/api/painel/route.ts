@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db, modoBanco } from "@/lib/banco";
 import { entrar, logado, sair, senhaConfere } from "@/lib/painel-auth";
 import { whatsappLigado } from "@/lib/whatsapp";
+import { anotar, estourou, limpar, quem } from "@/lib/limite";
 
 // GET: lista de pedidos do painel. POST: login com a senha.
 export async function GET() {
@@ -9,10 +10,17 @@ export async function GET() {
   return NextResponse.json({ pedidos: await db().listar(), banco: modoBanco(), whatsapp: whatsappLigado() }, { headers: { "cache-control": "no-store" } });
 }
 
+// Depois de 5 senhas erradas seguidas, este aparelho/rede fica 15 minutos sem poder tentar.
 export async function POST(req: Request) {
   const b = await req.json().catch(() => ({}));
   if (!process.env.PAINEL_SENHA) return NextResponse.json({ erro: "Defina PAINEL_SENHA no arquivo .env.local." }, { status: 500 });
-  if (!senhaConfere(String(b.senha ?? ""))) return NextResponse.json({ erro: "Senha incorreta." }, { status: 401 });
+  const chave = `login:${quem(req)}`;
+  if (await estourou(chave, 5, 15)) return NextResponse.json({ erro: "Muitas tentativas erradas. Espere 15 minutos e tente de novo." }, { status: 429 });
+  if (!senhaConfere(String(b.senha ?? ""))) {
+    await anotar(chave);
+    return NextResponse.json({ erro: "Senha incorreta." }, { status: 401 });
+  }
+  await limpar(chave);
   await entrar();
   return NextResponse.json({ ok: true });
 }

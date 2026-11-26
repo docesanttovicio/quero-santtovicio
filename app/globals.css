@@ -541,3 +541,6 @@ input,textarea,select{font-size:16px!important}
 .dash-side .som-btn.travado small{color:#3a2300}
 .dash-side .som-btn.travado .som-sw{background:rgba(58,35,0,.4)}
 .dash-side .som-btn:focus-visible{outline-color:var(--cream)}
+
+/* Campo-isca do formulário (fora da tela): só robô preenche */
+.isca{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden}

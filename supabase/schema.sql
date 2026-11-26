@@ -39,3 +39,15 @@ create index if not exists acessos_em_idx on public.acessos (em);
 alter table public.acessos enable row level security;
 grant select, insert, delete on public.acessos to service_role;
 grant usage, select on sequence public.acessos_id_seq to service_role;
+
+-- Limite de tentativas (login do painel, encomendas e cálculo de taxa).
+-- "chave" = tipo + resumo (hash) do IP; o IP em si não é guardado. Linhas com mais de 1 dia são apagadas sozinhas.
+create table if not exists public.tentativas (
+  id bigserial primary key,
+  chave text not null,
+  em timestamptz not null default now()
+);
+create index if not exists tentativas_chave_em on public.tentativas (chave, em);
+alter table public.tentativas enable row level security;
+grant select, insert, delete on public.tentativas to service_role;
+grant usage, select on sequence public.tentativas_id_seq to service_role;

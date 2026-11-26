@@ -6,6 +6,7 @@ import { lerConfig } from "@/lib/config";
 import { db } from "@/lib/banco";
 import { avisarLoja } from "@/lib/avisos";
 import { notificarEtapa } from "@/lib/whatsapp";
+import { permitir, quem } from "@/lib/limite";
 
 const txt = (v: unknown, max = 120) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
@@ -13,6 +14,11 @@ export async function POST(req: Request) {
   if (!pedidosAbertos()) return NextResponse.json({ erro: "As encomendas de Natal já foram encerradas." }, { status: 400 });
   let b: Record<string, unknown>;
   try { b = await req.json(); } catch { return NextResponse.json({ erro: "Pedido inválido." }, { status: 400 }); }
+  // Campo invisível que só robô preenche.
+  if (typeof b.site === "string" && b.site.trim()) return NextResponse.json({ erro: "Não deu para enviar. Tente de novo." }, { status: 400 });
+  // No máximo 8 encomendas por hora do mesmo aparelho/rede (contra robô enchendo o painel).
+  if (!(await permitir(`pedido:${quem(req)}`, 8, 60)))
+    return NextResponse.json({ erro: "Muitas encomendas seguidas deste aparelho. Espere um pouco ou chame a loja no WhatsApp." }, { status: 429 });
 
   // Itens: preço sempre do cardápio salvo no servidor (o mesmo que o painel edita)
   const cfg = await lerConfig();

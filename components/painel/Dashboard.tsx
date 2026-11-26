@@ -113,7 +113,10 @@ function Pedidos({ pedidos, sel, setSel, novos }: Props & { sel: string | null; 
     const linhas = pedidos.map((p) => [p.codigo, new Date(p.criadoEm).toLocaleString("pt-BR"), p.nome, p.whatsapp, nomeDia(p.dia), nomeFaixa(p.faixa), p.modo,
       p.endereco ? `${p.endereco.rua}, ${p.endereco.numero} ${p.endereco.complemento} - ${p.endereco.bairro} ${p.endereco.cep}` : "Retirada",
       resumoItens(p), p.subtotal, p.taxa, sinal(p), restante(p), situacao(p).t]);
-    const csv = [cab, ...linhas].map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
+    // Texto do cliente que começa com = + - @ viraria fórmula no Excel: entra como texto (com ' na frente).
+    // Telefone e número puros (ex.: +55 21 9...) ficam como estão.
+    const seguro = (c: unknown) => { const s = String(c); return typeof c === "string" && /^[=+\-@\t\r]/.test(s) && !/^[+-]?[\d\s().-]+$/.test(s) ? `'${s}` : s; };
+    const csv = [cab, ...linhas].map((l) => l.map((c) => `"${seguro(c).replace(/"/g, '""')}"`).join(";")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
     a.download = `pedidos-santto-vicio-${new Date().toISOString().slice(0, 10)}.csv`; a.click();

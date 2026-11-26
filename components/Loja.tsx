@@ -398,6 +398,7 @@ export type Form = { dia: string; faixa: string; modo: "entrega" | "retirada"; n
 const FORM_VAZIO: Form = { dia: "", faixa: "", modo: "entrega", nome: "", whatsapp: "", cep: "", numero: "", rua: "", bairro: "", complemento: "", pagamento: "pix" };
 let formAtual: Form = FORM_VAZIO;
 let taxaAtual: { km: number; valor: number } | null = null;
+let iscaAtual = ""; // campo invisível: só robô preenche
 
 // Dados do cliente guardados no próprio aparelho depois do primeiro pedido (para não digitar tudo de novo).
 const CHAVE_DADOS = "sv_dados";
@@ -490,6 +491,7 @@ function Dados({ className, subtotal, onVoltar, onRevisar, avisar }: { className
         </div>
         ) : (
         <div className="block"><h3>Seus dados</h3>
+          <div className="isca" aria-hidden="true"><label htmlFor="sv_site">Não preencha</label><input id="sv_site" name="sv_site" tabIndex={-1} autoComplete="off" defaultValue="" onChange={(e) => { iscaAtual = e.target.value; }} /></div>
           <div className="field"><label htmlFor="nome">Nome</label><input id="nome" autoComplete="name" value={f.nome} onChange={(e) => set("nome", e.target.value)} /></div>
           <div className="field"><label htmlFor="zap">WhatsApp</label><input id="zap" inputMode="tel" autoComplete="tel" placeholder="(21) 99999-9999" value={f.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} /><small className="muted">As atualizações da encomenda chegam neste WhatsApp.</small></div>
           {ent ? (<>
@@ -540,7 +542,7 @@ function Revisao({ linhas, subtotal, onFechar, onEnviado }: { linhas: { p: Produ
     try {
       const r = await fetch("/api/pedidos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
         itens: linhas.map((l) => ({ produtoId: l.produtoId, vi: l.vi, qtd: l.qtd, obs: l.obs })),
-        nome: f.nome, whatsapp: f.whatsapp, modo: f.modo, dia: f.dia, faixa: f.faixa, pagamento: f.pagamento, aceite,
+        nome: f.nome, whatsapp: f.whatsapp, modo: f.modo, dia: f.dia, faixa: f.faixa, pagamento: f.pagamento, aceite, site: iscaAtual,
         endereco: ent ? { cep: f.cep, rua: f.rua, numero: f.numero, complemento: f.complemento, bairro: f.bairro } : null,
       }) });
       const j = await r.json();
